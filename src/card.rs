@@ -30,12 +30,12 @@ pub enum Suit {
 #[derive(Debug, Clone, Copy)]
 pub enum Card {
     Joker(i64),
-    PlayingCard(i64, Rank, Suit),
+    PlayingCard { deck: i64, rank: Rank, suit: Suit },
 }
 
 impl Card {
-    fn is_joker(&self) -> bool {
-        matches!(self, Card::Joker(_))
+    pub fn is_joker(&self) -> bool {
+        matches!(self, Self::Joker(_))
     }
 }
 
@@ -98,7 +98,7 @@ mod impls {
                 // Suit::try_from will always succeed
                 let rank = Rank::try_from(n / 4).unwrap();
                 let suit = Suit::try_from(n % 4).unwrap();
-                Card::PlayingCard(deck, rank, suit)
+                Card::PlayingCard { deck, rank, suit }
             }
         }
     }
@@ -107,7 +107,7 @@ mod impls {
         fn from(card: Card) -> i64 {
             match card {
                 Card::Joker(x) => x,
-                Card::PlayingCard(deck, rank, suit) => {
+                Card::PlayingCard { deck, rank, suit } => {
                     (deck * 52) + ((rank as i64) * 4) + (suit as i64)
                 }
             }
