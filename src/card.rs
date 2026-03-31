@@ -37,6 +37,20 @@ impl Card {
     pub fn is_joker(&self) -> bool {
         matches!(self, Self::Joker(_))
     }
+
+    pub fn rank(&self) -> Option<Rank> {
+        match self {
+            Self::Joker(_) => None,
+            Self::PlayingCard { rank: rank, .. } => Some(*rank),
+        }
+    }
+
+    pub fn suit(&self) -> Option<Suit> {
+        match self {
+            Self::Joker(_) => None,
+            Self::PlayingCard { suit: suit, .. } => Some(*suit),
+        }
+    }
 }
 
 pub fn make_decks(number_of_decks: usize) -> Vec<Card> {
