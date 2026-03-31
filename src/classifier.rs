@@ -35,7 +35,7 @@ impl Hand {
             let mut new_cards: Vec<Card> = Vec::new();
             new_cards.extend_from_slice(cards);
             new_cards.sort();
-            match cards.len() {
+            match new_cards.len() {
                 1 => Some(Self::Single(new_cards[0])),
                 2 => is_pair(num_jokers, new_cards[0], new_cards[1])
                     .then_some(Self::Pair(new_cards[0], new_cards[1])),
@@ -55,6 +55,7 @@ impl Hand {
             }
         }
     }
+
     fn make_poker_hand(poker_type: PokerType, cards: &[Card]) -> Self {
         Self::Poker {
             poker_type,
@@ -100,17 +101,38 @@ fn is_triple(num_jokers: usize, c1: Card, c2: Card, c3: Card) -> bool {
 }
 
 fn classify_poker_hand(num_jokers: usize, cards: &[Card]) -> Option<Hand> {
-    assert!(cards.len() == 5);
+    // NOTE: |cards| = 5
+    // NOTE: num_jokers in [0, 4]
 
     let playing_cards = &cards[num_jokers..];
-    let is_straight = consecutive_ranks(playing_cards);
-    let is_flush = match_suit(playing_cards);
-    let all_same = match_ranks(playing_cards);
 
-    let ptype = match (is_straight, is_flush, all_same, num_jokers) {
-        (true, true, _, _) | (_, _, _, 4) => Some(PokerType::StraightFlush),
-        (_, _, true, _) => Some(PokerType::FiveKind),
-        _ => todo!("Finish all permutations"),
+    let num_jokers = num_jokers as i32;
+    let (counter_ranks, counter_suits) = count_instances(playing_cards);
+    let highest_suit_freq = *counter_suits.iter().max().unwrap();
+    let highest_rank_freq = *counter_ranks.iter().max().unwrap();
+    let num_pairs = counter_ranks.iter().filter(|&&x| x == 2).count();
+
+    let is_straight = consecutive_ranks(playing_cards);
+    let is_flush = highest_suit_freq == playing_cards.len() as i32;
+
+    let ptype = if is_straight && is_flush || num_jokers == 4 {
+        Some(PokerType::StraightFlush)
+    } else if num_jokers + highest_rank_freq == 5 {
+        Some(PokerType::FiveKind)
+    } else if num_jokers + highest_rank_freq == 4 {
+        Some(PokerType::FourKind)
+    } else if (num_jokers == 1 && num_pairs == 2)
+        || (num_pairs == 1 && highest_rank_freq == 3)
+    {
+        Some(PokerType::FullHouse)
+    } else if is_straight {
+        Some(PokerType::Straight)
+    } else if is_flush && highest_rank_freq == 1 {
+        Some(PokerType::Flush)
+    } else if (num_pairs == 2) || (num_jokers == 2 && highest_rank_freq == 1) {
+        Some(PokerType::TwoPair)
+    } else {
+        None
     };
 
     ptype.and_then(|ptype| Some(Hand::make_poker_hand(ptype, cards)))
@@ -120,6 +142,20 @@ fn classify_poker_hand(num_jokers: usize, cards: &[Card]) -> Option<Hand> {
  NOTE: The following functions have a 3rd, even stronger assumption:
  3) No jokers in the sequence of cards provided.
 */
+
+fn count_instances(cards: &[Card]) -> ([i32; 13], [i32; 4]) {
+    let mut counter_rank = [0; 13];
+    let mut counter_suit = [0; 4];
+    cards
+        .iter()
+        .map(|card| (card.rank().unwrap(), card.suit().unwrap()))
+        .for_each(|(rank, suit)| {
+            counter_rank[rank as usize] += 1;
+            counter_suit[suit as usize] += 1;
+        });
+    (counter_rank, counter_suit)
+}
+
 fn match_ranks(cards: &[Card]) -> bool {
     let rank = cards[0].rank().unwrap();
     cards
