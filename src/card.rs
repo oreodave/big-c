@@ -2,7 +2,7 @@ use std::cmp::Ordering;
 use std::convert::TryFrom;
 use std::hash::{Hash, Hasher};
 
-#[derive(Debug, Copy, Clone)]
+#[derive(PartialEq, Debug, Copy, Clone)]
 pub enum Rank {
     Three = 0,
     Four,
@@ -19,7 +19,7 @@ pub enum Rank {
     Two,
 }
 
-#[derive(Debug, Copy, Clone)]
+#[derive(PartialEq, Debug, Copy, Clone)]
 pub enum Suit {
     Diamond = 0,
     Club,
