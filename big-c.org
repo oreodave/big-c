@@ -1,0 +1,135 @@
+* TODO Implement player and game structure
+A game should have a table of players, a deck of unplayed cards, a
+deck of played cards, and some metadata for the current round.  The
+table of players should associate each player with a unique ID.  It
+should also track the cards in each players hand.
+* TODO Implement playing system
+Once an order has been picked, the first player becomes the "round
+chooser".  Game play goes like so:
+1) Round chooser plays a hand of any round type they wish, which
+  determines the round type overall.
+2) Each player takes a turn after the round chooser, either:
+   - Passing (skipping their turn)
+   - Playing a higher ranked hand than the last played hand.
+3) Play keeps rotating around the play order until either:
+   - A player has played all their cards, in which case that player
+     wins
+   - All but one player skips, in which case that player becomes the
+     round chooser.  Go to (1).
+** TODO Classify round types
+Each round type has a definition of what a valid "hand" is, and how
+ranking works in it.  So it's important to clarify this before
+anything else.
+*** TODO Classify hand sizes
+- 1: singles
+- 2: pairs
+- 3: triples
+- 5: poker hands
+*** TODO Classify hand ranking
+Hand ranking only applies for hands of the same round type - you
+wouldn't compare a pair to a straight.
+
+- Singles have a trivial ordering based on card ordering.
+- Pairs and triples are similar except when two hands have the same
+  rank: the hand with the higher order is the one with the higher
+  ordered card i.e. [3C, 3H] would lose to [3D, 3S].
+- Poker hands have a slightly more complex ranking:
+  - Each poker hand is a "strata" of ranking: Two Pairs < Flush <
+    Straight < Full House < Four Kind < Five Kind < Straight Flush.
+  - Lower strata hands are always beaten by higher strata hand,
+    regardless of the strength of the two (i.e. [3D, 4C, 4S, 2D, 2S]
+    (two pair) will always be worse than [4D, 5D, 6D, 9D, 10D]
+    (flush))
+  - Within a strata, the following ranking rules apply:
+    - Two pairs: one pair must be higher than both pairs of the
+      previous hand.
+    - Flush/Straight: at least one card must be higher than the
+      previous flush/straight
+    - Full house: if the triple is higher than the previous full
+      house, then this is a higher hand.  If they're the same triple,
+      the pair must be higher.
+    - Four kind/Five Kind: At least one of the four/five kind must
+      have a higher rank (4D < 4S).
+    - Straight Flush: Same rules as Flush/Straight.
+** TODO Jokers
+Jokers act as filler cards to allow certain hands.  In classification,
+the strongest hand possible is assumed based on the cards available -
+players have no influence on how their hand is classified (i.e. [4D,
+4S, Joker, Joker, 3K] is always a four of a kind, cannot be classified
+as a two pair or a full house).  However, jokers are individually
+considered the lowest possible order and thus have no effect on hand
+ordering.  Their use in play is dependent on the round type:
+- Singles: Jokers cannot be played.
+- Pairs/Triples: Can be used as 1/2 cards of the hand for
+  pairs/triples respectively.
+- Poker hands: at least one card must not be a joker.  Based on the
+  strength argument, we can very easily classify what types of hands
+  may be generated based on the number of jokers:
+  - 4 jokers: straight flush, based on the card choice.
+  - 3 jokers: five of a kind if other two cards are a pair, otherwise
+    four of a kind against the highest ranked card.
+  - 1/2 jokers: much more dependent on the other cards present.
+** TODO Footstools
+Footstools are a core mechanic of Big-C.  The basic idea is this: if
+your hand is 1 step higher or /exactly/ the same as the previous hand,
+the previous player is penalised for it.  It is called a footstool
+since your hand is essentially nesting on top of the other hand.
+
+There are two types of footstool:
+1) Half footstool: your hand is "1 step higher" than the previous one.
+2) Full footstool: your hand is the /exact/ same as the previous one.
+
+The penalties are fairly simple:
+- Half footstool: 1 extra card added to the previous player.
+- Full footstool: 2 extra cards added to the previous player.
+
+The ordering relationship is taken from the round type - so
+equivalency is just based on the important cards in the case of poker
+hands.  The "1 step higher" part requires a bit of explanation per
+round type:
+- Singles: 2S is not half footstooled by 3D (no modulo).  It's
+  otherwise just following the ordering of cards.
+- Pairs/Triples: Only card that matters is the high card.  So [4C, 4H]
+  would be half-footstooled by [4D, 4S].  Similarly, [4D, 4C, 4S] is
+  half-footstooled by [5D, 5C, 5S] due to 4S->5D.
+- Poker hands:
+  - Two pair: Both pairs must follow the half-footstool condition of
+    pairs.
+  - Flush/Straight: High card must follow the half-footstool
+    condition.
+  - Full house: Half footstool condition applies to both the pair and
+    the triple.
+  - Four of a kind: Half footstool condition applies on the high card
+    of the four-kind cards.
+  - Straight Flush: Same as flush/straight.
+
+How do jokers play into this?  They don't!  Since the highest card is
+all that matters in any half-footstool, the joker can never influence
+this.  Also note that a hand can only be played if it's better than
+the previous one, so that should exclude a bunch of hands from being
+footstool-ing.
+* TODO Implement order of play
+There is a minigame required to determine order of play in big-c.  The
+actual routine is a bit complex to go over, given the possible scale
+of the game:
+1) Players present 1 card each publicly
+2) Order all cards from lowest to highest - this should be the play
+   order (lowest goes first).
+3) Any conflicts due to the same card should be resolved by the
+   following routine:
+   1) Players present another card publicly
+   2) If they conflict, go to (1)
+   3) Use the ranking
+   4) If all cards are presented to be the exact same (statistical
+      nightmare) then randomly assort the players.
+
+What makes this interesting is that players get to CHOOSE what cards
+they present.  All sorts of mind games can be played here.
+* TODO Write a basic CLI version
+MVP goals:
+- 2 player
+- Each player takes turns playing the game (ensure we add a stage to
+  allow handover, clearing screen before and after)
+- Ensure hands are valid, and when a round is won play is passed over
+  appropriately
+* TODO Write webserver
