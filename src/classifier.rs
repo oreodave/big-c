@@ -37,34 +37,26 @@ pub fn classify(cards: &[Card]) -> Option<Hand> {
 }
 
 /* NOTE: the assumptions of the following functions are:
-   1) The arguments are not all jokers
-   2) The arguments are sorted i.e. c_n < c_n+1 for all n.
+   1) The cards are not all jokers
+   2) The cards are sorted i.e. c_n < c_n+1 for all n.
+
+  We can make these assumptions because of how `classify` calls these functions.
 
    Consequences:
    - Any jokers are on the lower end of the sequence of cards, due to (2)
-   - If l is the number of cards and (c_n)_0^(l-1) are all jokers, hand may be
-     classified as the strongest type possible.
-       - because (2), all jokers are sorted to the bottom.
+   - If l is the number of cards and there are l-1 jokers, hand may be
+     classified as the strongest type possible for that hand type.
 */
 
 fn is_pair(num_jokers: usize, c1: Card, c2: Card) -> bool {
-    if num_jokers == 1 {
-        true
-    } else {
-        // Otherwise, their ranks better match
-        all_same_rank(&[c1, c2])
-    }
+    (num_jokers == 1) || all_same_rank(&[c1, c2])
 }
 
 fn is_triple(num_jokers: usize, c1: Card, c2: Card, c3: Card) -> bool {
-    if num_jokers == 2 {
-        true
-    } else if num_jokers == 1 {
-        // c2's and c3's rank better match
-        all_same_rank(&[c2, c3])
-    } else {
-        // all 3 ranks better match
-        all_same_rank(&[c1, c2, c3])
+    match num_jokers {
+        2 => true,
+        1 => all_same_rank(&[c2, c3]),
+        _ => all_same_rank(&[c1, c2, c3]),
     }
 }
 
@@ -157,16 +149,12 @@ fn is_straight(num_jokers: i32, cards: &[Card]) -> bool {
         true
     }
 
-    let ranks = cards.iter().map(|x| x.rank().unwrap() as i32);
+    let rank_nums = cards.iter().map(|x| x.rank().unwrap() as i32);
+    let ord_rank_nums =
+        cards.iter().map(|x| x.rank().unwrap().ordinary_order());
 
-    if !strictly_consecutive_numbers(ranks, num_jokers) {
-        // If we don't have a strictly consecutive sequence, try using an
-        // ordinary order where Ace is the lowest rank and king is the highest.
-        let ranks = cards.iter().map(|x| x.rank().unwrap().ordinary_order());
-        strictly_consecutive_numbers(ranks, num_jokers)
-    } else {
-        true
-    }
+    strictly_consecutive_numbers(rank_nums, num_jokers)
+        || strictly_consecutive_numbers(ord_rank_nums, num_jokers)
 }
 
 mod traits {
