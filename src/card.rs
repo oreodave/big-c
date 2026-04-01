@@ -36,6 +36,14 @@ impl Rank {
 }
 
 impl Card {
+    pub fn new(rank: Rank, suit: Suit) -> Self {
+        Self::PlayingCard {
+            deck: 0,
+            rank,
+            suit,
+        }
+    }
+
     pub fn is_joker(&self) -> bool {
         matches!(self, Self::Joker(_))
     }
