@@ -1,4 +1,4 @@
-#[derive(PartialEq, Debug, Copy, Clone)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Copy, Clone)]
 pub enum Rank {
     Three = 0,
     Four,
@@ -15,7 +15,7 @@ pub enum Rank {
     Two,
 }
 
-#[derive(PartialEq, Debug, Copy, Clone)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Copy, Clone)]
 pub enum Suit {
     Diamond = 0,
     Club,
@@ -23,10 +23,17 @@ pub enum Suit {
     Spade,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Eq, Debug, Clone, Copy)]
+pub struct PlayingCard {
+    pub deck: i64,
+    pub rank: Rank,
+    pub suit: Suit,
+}
+
+#[derive(Eq, Debug, Clone, Copy)]
 pub enum Card {
     Joker(i64),
-    PlayingCard { deck: i64, rank: Rank, suit: Suit },
+    PlayingCard(PlayingCard),
 }
 
 impl Rank {
@@ -35,12 +42,27 @@ impl Rank {
     }
 }
 
+impl PlayingCard {
+    pub fn new(deck: i64, rank: Rank, suit: Suit) -> Self {
+        Self { deck, rank, suit }
+    }
+
+    pub fn abs(&self) -> i64 {
+        let rank = self.rank as i64;
+        let suit = self.suit as i64;
+        (rank * 4) + suit
+    }
+}
+
 impl Card {
     pub fn new(rank: Rank, suit: Suit) -> Self {
-        Self::PlayingCard {
-            deck: 0,
-            rank,
-            suit,
+        Self::PlayingCard(PlayingCard::new(0, rank, suit))
+    }
+
+    pub fn deck_abs(&self) -> i64 {
+        match *self {
+            Self::Joker(x) => x,
+            Self::PlayingCard(card) => card.abs(),
         }
     }
 
@@ -48,18 +70,19 @@ impl Card {
         matches!(self, Self::Joker(_))
     }
 
-    pub fn rank(&self) -> Option<Rank> {
-        match self {
+    pub fn playing_card(&self) -> Option<PlayingCard> {
+        match *self {
             Self::Joker(_) => None,
-            Self::PlayingCard { rank, .. } => Some(*rank),
+            Self::PlayingCard(card) => Some(card),
         }
     }
 
+    pub fn rank(&self) -> Option<Rank> {
+        self.playing_card().and_then(|pc| Some(pc.rank))
+    }
+
     pub fn suit(&self) -> Option<Suit> {
-        match self {
-            Self::Joker(_) => None,
-            Self::PlayingCard { suit, .. } => Some(*suit),
-        }
+        self.playing_card().and_then(|pc| Some(pc.suit))
     }
 }
 
@@ -70,13 +93,9 @@ pub fn make_decks(number_of_decks: usize) -> Vec<Card> {
         .collect::<Vec<Card>>()
 }
 
-mod traits {
-    use std::cmp::Ordering;
-    use std::convert::TryFrom;
-    use std::fmt::{Display, Formatter};
-    use std::hash::{Hash, Hasher};
-
+mod trait_display {
     use super::*;
+    use std::fmt::{Display, Formatter};
 
     impl Display for Rank {
         fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
@@ -117,16 +136,25 @@ mod traits {
         }
     }
 
+    impl Display for PlayingCard {
+        fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+            write!(f, "{}[{}]", self.rank, self.suit)
+        }
+    }
+
     impl Display for Card {
         fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
             match self {
                 Card::Joker(_) => write!(f, "Joker"),
-                Card::PlayingCard { rank, suit, .. } => {
-                    write!(f, "{}[{}]", rank, suit)
-                }
+                Card::PlayingCard(card) => write!(f, "{}", card),
             }
         }
     }
+}
+
+mod traits_numerics {
+    use super::*;
+    use std::convert::TryFrom;
 
     impl TryFrom<i64> for Rank {
         type Error = ();
@@ -165,20 +193,43 @@ mod traits {
         }
     }
 
-    impl From<i64> for Card {
-        fn from(n: i64) -> Card {
-            if n < 0 {
-                Card::Joker(n)
-            } else {
+    impl TryFrom<i64> for PlayingCard {
+        type Error = ();
+
+        fn try_from(n: i64) -> Result<Self, Self::Error> {
+            if n >= 0 {
                 let deck = n / 52;
                 let n = n % 52;
                 // NOTE: If only Rust had Ada-like numeric contracts, this wouldn't
                 // be necessary; n >= 0 => n % 52 in [0, 51] so Rank::try_from and
-                // Suit::try_from will always succeed
+                // Suit::try_from will always succeed.
                 let rank = Rank::try_from(n / 4).unwrap();
                 let suit = Suit::try_from(n % 4).unwrap();
-                Card::PlayingCard { deck, rank, suit }
+                Ok(Self { deck, rank, suit })
+            } else {
+                Err(())
             }
+        }
+    }
+
+    impl From<i64> for Card {
+        fn from(n: i64) -> Self {
+            if n < 0 {
+                Self::Joker(n)
+            } else {
+                // Since n >= 0, this should always succeed
+                let pc = PlayingCard::try_from(n).unwrap();
+                Self::PlayingCard(pc)
+            }
+        }
+    }
+
+    impl From<PlayingCard> for i64 {
+        fn from(card: PlayingCard) -> i64 {
+            let deck = card.deck as i64;
+            let rank = card.rank as i64;
+            let suit = card.suit as i64;
+            (deck * 52) + (rank * 4) + suit
         }
     }
 
@@ -186,10 +237,18 @@ mod traits {
         fn from(card: Card) -> i64 {
             match card {
                 Card::Joker(x) => x,
-                Card::PlayingCard { deck, rank, suit } => {
-                    (deck * 52) + ((rank as i64) * 4) + (suit as i64)
-                }
+                Card::PlayingCard(pc) => i64::from(pc),
             }
+        }
+    }
+}
+
+mod traits_ord {
+    use super::*;
+    use std::cmp::Ordering;
+    impl PartialEq for PlayingCard {
+        fn eq(&self, other: &Self) -> bool {
+            self.cmp(other) == Ordering::Equal
         }
     }
 
@@ -199,35 +258,45 @@ mod traits {
         }
     }
 
-    impl Eq for Card {}
-
-    impl Ord for Card {
-        fn cmp(&self, other: &Self) -> Ordering {
-            if self.is_joker() && other.is_joker() {
-                Ordering::Equal
-            } else if self.is_joker() {
-                Ordering::Less
-            } else if other.is_joker() {
-                Ordering::Greater
-            } else {
-                let self_val = i64::from(*self) % 52;
-                let other_val = i64::from(*other) % 52;
-                self_val.cmp(&other_val)
-            }
-        }
-    }
-
-    impl Hash for Card {
-        fn hash<H: Hasher>(&self, state: &mut H) {
-            // NOTE: We're using the i64 conversion of card for the hash since that
-            // should generate unique numbers per card.
-            i64::from(*self).hash(state);
+    impl PartialOrd for PlayingCard {
+        fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+            Some(self.cmp(other))
         }
     }
 
     impl PartialOrd for Card {
         fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
             Some(self.cmp(other))
+        }
+    }
+
+    impl Ord for PlayingCard {
+        fn cmp(&self, other: &Self) -> Ordering {
+            self.abs().cmp(&other.abs())
+        }
+    }
+
+    impl Ord for Card {
+        fn cmp(&self, other: &Self) -> Ordering {
+            match (self, other) {
+                (Self::PlayingCard(c1), Self::PlayingCard(c2)) => c1.cmp(c2),
+                (Self::Joker(_), Self::Joker(_)) => Ordering::Equal,
+                (Self::Joker(_), _) => Ordering::Less,
+                (_, Self::Joker(_)) => Ordering::Greater,
+            }
+        }
+    }
+}
+
+mod traits_hash {
+    use super::*;
+    use std::hash::{Hash, Hasher};
+
+    impl Hash for Card {
+        fn hash<H: Hasher>(&self, state: &mut H) {
+            // NOTE: We're using the i64 conversion of card for the hash since that
+            // should generate unique numbers per card.
+            i64::from(*self).hash(state);
         }
     }
 }
