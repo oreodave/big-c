@@ -185,3 +185,34 @@ fn consecutive_ranks(num_jokers: i32, cards: &[Card]) -> bool {
     }
     return true;
 }
+
+mod impls {
+    use super::*;
+    use std::fmt::{Display, Formatter, Result};
+
+    impl Display for Hand {
+        fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+            match self {
+                Hand::Single(c1) => write!(f, "Single[{}]", c1),
+                Hand::Pair(c1, c2) => write!(f, "Pair[{}, {}]", c1, c2),
+                Hand::Triple(c1, c2, c3) => {
+                    write!(f, "Triple[{}, {}, {}]", c1, c2, c3)
+                }
+                Hand::Poker {
+                    poker_type,
+                    c1,
+                    c2,
+                    c3,
+                    c4,
+                    c5,
+                } => {
+                    write!(
+                        f,
+                        "Poker[{:?}: {}, {}, {}, {}, {}]",
+                        poker_type, c1, c2, c3, c4, c5
+                    )
+                }
+            }
+        }
+    }
+}
