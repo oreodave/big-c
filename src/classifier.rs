@@ -27,35 +27,7 @@ pub enum Hand {
 }
 
 impl Hand {
-    pub fn classify(cards: &[Card]) -> Option<Self> {
-        let num_jokers = cards.iter().filter(|c| c.is_joker()).count();
-        if cards.is_empty() || num_jokers == cards.len() {
-            None
-        } else {
-            let mut new_cards: Vec<Card> = Vec::new();
-            new_cards.extend_from_slice(cards);
-            new_cards.sort();
-            match new_cards.len() {
-                1 => Some(Self::Single(new_cards[0])),
-                2 => is_pair(num_jokers, new_cards[0], new_cards[1])
-                    .then_some(Self::Pair(new_cards[0], new_cards[1])),
-                3 => is_triple(
-                    num_jokers,
-                    new_cards[0],
-                    new_cards[1],
-                    new_cards[2],
-                )
-                .then_some(Self::Triple(
-                    new_cards[0],
-                    new_cards[1],
-                    new_cards[2],
-                )),
-                5 => classify_poker_hand(num_jokers, &new_cards),
-                _ => None,
-            }
-        }
-    }
-
+    // Stupid shorthand method of generating poker hands
     fn make_poker_hand(poker_type: PokerType, cards: &[Card]) -> Self {
         Self::Poker {
             poker_type,
@@ -65,6 +37,27 @@ impl Hand {
             c4: cards[3],
             c5: cards[4],
         }
+    }
+}
+
+pub fn classify(cards: &[Card]) -> Option<Hand> {
+    let num_jokers = cards.iter().filter(|c| c.is_joker()).count();
+    if cards.is_empty() || num_jokers == cards.len() {
+        return None;
+    }
+
+    let mut new_cards: Vec<Card> = Vec::new();
+    new_cards.extend_from_slice(cards);
+    new_cards.sort();
+    match new_cards.len() {
+        1 => Some(Hand::Single(new_cards[0])),
+        2 => is_pair(num_jokers, new_cards[0], new_cards[1])
+            .then_some(Hand::Pair(new_cards[0], new_cards[1])),
+        3 => is_triple(num_jokers, new_cards[0], new_cards[1], new_cards[2])
+            .then_some(Hand::Triple(new_cards[0], new_cards[1], new_cards[2])),
+        5 => classify_poker_hand(num_jokers, &new_cards)
+            .map(|ptype| Hand::make_poker_hand(ptype, cards)),
+        _ => None,
     }
 }
 
@@ -100,10 +93,15 @@ fn is_triple(num_jokers: usize, c1: Card, c2: Card, c3: Card) -> bool {
     }
 }
 
-fn hand_type(num_jokers: usize, cards: &[Card]) -> Option<PokerType> {
-    let playing_cards = &cards[num_jokers..];
+fn classify_poker_hand(num_jokers: usize, cards: &[Card]) -> Option<PokerType> {
+    // NOTE: |cards| = 5
+    // NOTE: num_jokers in [0, 4]
+
+    // FIXME: So ugly.  Any way we can make this better?
 
     let num_jokers = num_jokers as i32;
+    let playing_cards = &cards[num_jokers..];
+
     let (counter_ranks, counter_suits) = count_cards(playing_cards);
     let highest_suit_freq = *counter_suits.iter().max().unwrap();
     let highest_rank_freq = *counter_ranks.iter().max().unwrap();
@@ -111,7 +109,6 @@ fn hand_type(num_jokers: usize, cards: &[Card]) -> Option<PokerType> {
 
     let is_straight = is_straight(num_jokers, playing_cards);
     let is_flush = highest_suit_freq == playing_cards.len() as i32;
-
     if is_straight && is_flush || num_jokers == 4 {
         Some(PokerType::StraightFlush)
     } else if num_jokers + highest_rank_freq == 5 {
@@ -119,7 +116,7 @@ fn hand_type(num_jokers: usize, cards: &[Card]) -> Option<PokerType> {
     } else if num_jokers + highest_rank_freq == 4 {
         Some(PokerType::FourKind)
     } else if (num_jokers == 1 && num_pairs == 2)
-        || num_pairs > 0 && highest_rank_freq == 3
+        || (num_pairs > 0 && highest_rank_freq == 3)
     {
         Some(PokerType::FullHouse)
     } else if is_straight {
@@ -131,14 +128,6 @@ fn hand_type(num_jokers: usize, cards: &[Card]) -> Option<PokerType> {
     } else {
         None
     }
-}
-
-fn classify_poker_hand(num_jokers: usize, cards: &[Card]) -> Option<Hand> {
-    // NOTE: |cards| = 5
-    // NOTE: num_jokers in [0, 4]
-
-    hand_type(num_jokers, cards)
-        .map(|ptype| Hand::make_poker_hand(ptype, cards))
 }
 
 /*
