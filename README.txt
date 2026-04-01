@@ -21,5 +21,4 @@ Requirements:
 
 Run:
     $ cargo build
-to compile the program.  Binary artifact should be located under
-`./bin/big-c`.
+to compile the program.
