@@ -168,22 +168,44 @@ fn all_same_rank(cards: &[Card]) -> bool {
 }
 
 fn is_straight(num_jokers: i32, cards: &[Card]) -> bool {
-    // TODO: allow straights where Ace or 2 are the first members (loop-around
-    // straights).
-    let mut num_jokers = num_jokers;
-    for i in 0..(cards.len() - 1) {
-        let r1 = cards[i].rank().unwrap() as i32;
-        let r2 = cards[i + 1].rank().unwrap() as i32;
-        let diff = r2 - r1;
-        if diff == 0 || diff - 1 > num_jokers {
-            return false;
+    /** Given a slice `nums` (presumed ascending ordered) and the amount of allowed
+     * `gaps`, figure out if the nums are actually a consecutive sequence.
+     */
+    fn strictly_consecutive_numbers<I>(mut nums: I, mut gaps: i32) -> bool
+    where
+        I: Iterator<Item = i32>,
+    {
+        let mut prev = match nums.next() {
+            Some(n) => n,
+            None => unreachable!("Iterator should not be empty"),
+        };
+        for m in nums {
+            let diff = m - prev;
+            if diff == 0 || diff - 1 > gaps {
+                return false;
+            }
+            gaps -= diff - 1;
+            if gaps < 0 {
+                return false;
+            }
+            prev = m;
         }
-        num_jokers -= diff - 1;
+        true
     }
-    return true;
+
+    let ranks = cards.iter().map(|x| x.rank().unwrap() as i32);
+
+    if !strictly_consecutive_numbers(ranks, num_jokers) {
+        // If we don't have a strictly consecutive sequence, try using an
+        // ordinary order where Ace is the lowest rank and king is the highest.
+        let ranks = cards.iter().map(|x| x.rank().unwrap().ordinary_order());
+        strictly_consecutive_numbers(ranks, num_jokers)
+    } else {
+        true
+    }
 }
 
-mod impls {
+mod traits {
     use super::*;
     use std::fmt::{Display, Formatter, Result};
 
