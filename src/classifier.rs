@@ -21,17 +21,17 @@ pub fn classify(cards: &[Card]) -> Option<Hand> {
         return None;
     }
 
-    let mut new_cards: Vec<Card> = Vec::new();
-    new_cards.extend_from_slice(cards);
-    new_cards.sort();
-    match new_cards.len() {
-        1 => Some(Hand::Single(new_cards[0])),
-        2 => is_pair(num_jokers, new_cards[0], new_cards[1])
-            .then_some(Hand::Pair(new_cards[0], new_cards[1])),
-        3 => is_triple(num_jokers, new_cards[0], new_cards[1], new_cards[2])
-            .then_some(Hand::Triple(new_cards[0], new_cards[1], new_cards[2])),
-        5 => classify_poker_hand(num_jokers, &new_cards)
-            .map(|ptype| Hand::make_poker_hand(ptype, cards)),
+    let mut cards_cpy = [Card::from(0); 5];
+    cards_cpy.copy_from_slice(cards);
+    cards_cpy.sort();
+    match cards_cpy.len() {
+        1 => Some(Hand::Single(cards_cpy[0])),
+        2 => is_pair(num_jokers, cards_cpy[0], cards_cpy[1])
+            .then_some(Hand::Pair(cards_cpy[0], cards_cpy[1])),
+        3 => is_triple(num_jokers, cards_cpy[0], cards_cpy[1], cards_cpy[2])
+            .then_some(Hand::Triple(cards_cpy[0], cards_cpy[1], cards_cpy[2])),
+        5 => try_poker_hand(num_jokers, &cards_cpy)
+            .map(|ptype| Hand::make_poker_hand(ptype, &cards_cpy)),
         _ => None,
     }
 }
