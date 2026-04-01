@@ -37,14 +37,14 @@ impl Card {
     pub fn rank(&self) -> Option<Rank> {
         match self {
             Self::Joker(_) => None,
-            Self::PlayingCard { rank: rank, .. } => Some(*rank),
+            Self::PlayingCard { rank, .. } => Some(*rank),
         }
     }
 
     pub fn suit(&self) -> Option<Suit> {
         match self {
             Self::Joker(_) => None,
-            Self::PlayingCard { suit: suit, .. } => Some(*suit),
+            Self::PlayingCard { suit, .. } => Some(*suit),
         }
     }
 }

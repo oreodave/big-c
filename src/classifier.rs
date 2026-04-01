@@ -29,7 +29,7 @@ pub enum Hand {
 impl Hand {
     pub fn classify(cards: &[Card]) -> Option<Self> {
         let num_jokers = cards.iter().filter(|c| c.is_joker()).count();
-        if cards.len() == 0 || num_jokers == cards.len() {
+        if cards.is_empty() || num_jokers == cards.len() {
             None
         } else {
             let mut new_cards: Vec<Card> = Vec::new();
@@ -68,7 +68,7 @@ impl Hand {
     }
 }
 
-/** NOTE: the assumptions of the following functions are:
+/* NOTE: the assumptions of the following functions are:
    1) The arguments are not all jokers
    2) The arguments are sorted i.e. c_n < c_n+1 for all n.
 
@@ -118,9 +118,9 @@ fn hand_type(num_jokers: usize, cards: &[Card]) -> Option<PokerType> {
         Some(PokerType::FiveKind)
     } else if num_jokers + highest_rank_freq == 4 {
         Some(PokerType::FourKind)
-    } else if num_jokers == 1 && num_pairs == 2 {
-        Some(PokerType::FullHouse)
-    } else if (num_pairs > 0 && highest_rank_freq == 3) {
+    } else if (num_jokers == 1 && num_pairs == 2)
+        || num_pairs > 0 && highest_rank_freq == 3
+    {
         Some(PokerType::FullHouse)
     } else if is_straight {
         Some(PokerType::Straight)
@@ -138,7 +138,7 @@ fn classify_poker_hand(num_jokers: usize, cards: &[Card]) -> Option<Hand> {
     // NOTE: num_jokers in [0, 4]
 
     hand_type(num_jokers, cards)
-        .and_then(|ptype| Some(Hand::make_poker_hand(ptype, cards)))
+        .map(|ptype| Hand::make_poker_hand(ptype, cards))
 }
 
 /*
