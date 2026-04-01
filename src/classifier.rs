@@ -100,10 +100,7 @@ fn is_triple(num_jokers: usize, c1: Card, c2: Card, c3: Card) -> bool {
     }
 }
 
-fn classify_poker_hand(num_jokers: usize, cards: &[Card]) -> Option<Hand> {
-    // NOTE: |cards| = 5
-    // NOTE: num_jokers in [0, 4]
-
+fn hand_type(num_jokers: usize, cards: &[Card]) -> Option<PokerType> {
     let playing_cards = &cards[num_jokers..];
 
     let num_jokers = num_jokers as i32;
@@ -133,9 +130,15 @@ fn classify_poker_hand(num_jokers: usize, cards: &[Card]) -> Option<Hand> {
         Some(PokerType::TwoPair)
     } else {
         None
-    };
+    }
+}
 
-    ptype.and_then(|ptype| Some(Hand::make_poker_hand(ptype, cards)))
+fn classify_poker_hand(num_jokers: usize, cards: &[Card]) -> Option<Hand> {
+    // NOTE: |cards| = 5
+    // NOTE: num_jokers in [0, 4]
+
+    hand_type(num_jokers, cards)
+        .and_then(|ptype| Some(Hand::make_poker_hand(ptype, cards)))
 }
 
 /*
