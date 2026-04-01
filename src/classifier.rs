@@ -112,7 +112,7 @@ fn classify_poker_hand(num_jokers: usize, cards: &[Card]) -> Option<Hand> {
     let highest_rank_freq = *counter_ranks.iter().max().unwrap();
     let num_pairs = counter_ranks.iter().filter(|&&x| x == 2).count();
 
-    let is_straight = consecutive_ranks(playing_cards);
+    let is_straight = consecutive_ranks(num_jokers, playing_cards);
     let is_flush = highest_suit_freq == playing_cards.len() as i32;
 
     let ptype = if is_straight && is_flush || num_jokers == 4 {
@@ -172,13 +172,16 @@ fn match_suit(cards: &[Card]) -> bool {
         .all(|other_suit| suit == other_suit)
 }
 
-fn consecutive_ranks(cards: &[Card]) -> bool {
+fn consecutive_ranks(num_jokers: i32, cards: &[Card]) -> bool {
+    let mut num_jokers = num_jokers;
     for i in 0..(cards.len() - 1) {
         let r1 = cards[i].rank().unwrap() as i32;
         let r2 = cards[i + 1].rank().unwrap() as i32;
-        if r1 != r2 + 1 {
+        let diff = r2 - r1;
+        if diff == 0 || diff - 1 > num_jokers {
             return false;
         }
+        num_jokers -= diff - 1;
     }
     return true;
 }
