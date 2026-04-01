@@ -60,68 +60,56 @@ fn is_triple(num_jokers: usize, c1: Card, c2: Card, c3: Card) -> bool {
     }
 }
 
-fn classify_poker_hand(num_jokers: usize, cards: &[Card]) -> Option<PokerType> {
-    // NOTE: |cards| = 5
-    // NOTE: num_jokers in [0, 4]
-
+fn try_poker_hand(num_jokers: usize, cards: &[Card]) -> Option<PokerType> {
     // FIXME: So ugly.  Any way we can make this better?
 
-    let num_jokers = num_jokers as i32;
     let playing_cards = &cards[num_jokers..];
+    let num_jokers = num_jokers as i32;
 
-    let (counter_ranks, counter_suits) = count_cards(playing_cards);
-    let highest_suit_freq = *counter_suits.iter().max().unwrap();
+    let mut counter_ranks = [0; 13];
+    let mut counter_suits = [0; 13];
+    for i in 0..playing_cards.len() {
+        let card = playing_cards[i];
+        let rank = card.rank().unwrap() as usize;
+        let suit = card.suit().unwrap() as usize;
+        counter_ranks[rank] += 1;
+        counter_suits[suit] += 1;
+    }
+
     let highest_rank_freq = *counter_ranks.iter().max().unwrap();
-    let num_pairs = counter_ranks.iter().filter(|&&x| x == 2).count();
-
+    let num_pairs = counter_ranks.iter().filter(|&count| *count == 2).count();
     let is_straight = is_straight(num_jokers, playing_cards);
-    let is_flush = highest_suit_freq == playing_cards.len() as i32;
+    let is_flush = counter_suits
+        .iter()
+        .any(|&count| count == playing_cards.len());
+
     if is_straight && is_flush || num_jokers == 4 {
         Some(PokerType::StraightFlush)
     } else if num_jokers + highest_rank_freq == 5 {
         Some(PokerType::FiveKind)
     } else if num_jokers + highest_rank_freq == 4 {
         Some(PokerType::FourKind)
-    } else if (num_jokers == 1 && num_pairs == 2)
-        || (num_pairs > 0 && highest_rank_freq == 3)
-    {
+    } else if num_pairs == 1 && highest_rank_freq == 3 {
+        Some(PokerType::FullHouse)
+    } else if num_jokers == 1 && num_pairs == 2 {
         Some(PokerType::FullHouse)
     } else if is_straight {
         Some(PokerType::Straight)
-    } else if is_flush && highest_rank_freq == 1 {
+    } else if is_flush {
         Some(PokerType::Flush)
-    } else if (num_pairs == 2) || (num_jokers == 2 && highest_rank_freq == 1) {
+    } else if (num_pairs == 2)
+        || (num_jokers == 1 && num_pairs == 1)
+        || (num_jokers == 2 && highest_rank_freq == 1)
+    {
         Some(PokerType::TwoPair)
     } else {
         None
     }
 }
 
-/*
- NOTE: The following functions have a 3rd, even stronger assumption:
- 3) No jokers in the sequence of cards provided.
+/* NOTE: The following functions have a 3rd, even stronger assumption:
+   3) No jokers in the sequence of cards provided.
 */
-
-fn count_cards(cards: &[Card]) -> ([i32; 13], [i32; 4]) {
-    let mut counter_rank = [0; 13];
-    let mut counter_suit = [0; 4];
-    cards
-        .iter()
-        .map(|card| (card.rank().unwrap(), card.suit().unwrap()))
-        .for_each(|(rank, suit)| {
-            counter_rank[rank as usize] += 1;
-            counter_suit[suit as usize] += 1;
-        });
-    (counter_rank, counter_suit)
-}
-
-fn all_same_rank(cards: &[Card]) -> bool {
-    let rank = cards[0].rank().unwrap();
-    cards
-        .iter()
-        .map(|card| card.rank().unwrap())
-        .all(|other_rank| rank == other_rank)
-}
 
 fn is_straight(num_jokers: i32, cards: &[Card]) -> bool {
     /** Given a slice `nums` (presumed ascending ordered) and the amount of allowed
@@ -155,6 +143,14 @@ fn is_straight(num_jokers: i32, cards: &[Card]) -> bool {
 
     strictly_consecutive_numbers(rank_nums, num_jokers)
         || strictly_consecutive_numbers(ord_rank_nums, num_jokers)
+}
+
+fn all_same_rank(cards: &[Card]) -> bool {
+    let rank = cards[0].rank().unwrap();
+    cards[1..]
+        .iter()
+        .map(|card| card.rank().unwrap())
+        .all(|other_rank| rank == other_rank)
 }
 
 mod traits {
