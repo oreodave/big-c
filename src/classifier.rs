@@ -173,6 +173,8 @@ fn match_suit(cards: &[Card]) -> bool {
 }
 
 fn consecutive_ranks(num_jokers: i32, cards: &[Card]) -> bool {
+    // TODO: allow straights where Ace or 2 are the first members (loop-around
+    // straights).
     let mut num_jokers = num_jokers;
     for i in 0..(cards.len() - 1) {
         let r1 = cards[i].rank().unwrap() as i32;
