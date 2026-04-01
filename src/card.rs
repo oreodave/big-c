@@ -29,6 +29,12 @@ pub enum Card {
     PlayingCard { deck: i64, rank: Rank, suit: Suit },
 }
 
+impl Rank {
+    pub fn ordinary_order(&self) -> i32 {
+        ((*self as i32) + 2) % 13
+    }
+}
+
 impl Card {
     pub fn is_joker(&self) -> bool {
         matches!(self, Self::Joker(_))
@@ -56,7 +62,7 @@ pub fn make_decks(number_of_decks: usize) -> Vec<Card> {
         .collect::<Vec<Card>>()
 }
 
-mod impls {
+mod traits {
     use std::cmp::Ordering;
     use std::convert::TryFrom;
     use std::fmt::{Display, Formatter};
