@@ -84,7 +84,7 @@ fn is_pair(num_jokers: usize, c1: Card, c2: Card) -> bool {
         true
     } else {
         // Otherwise, their ranks better match
-        match_ranks(&[c1, c2])
+        all_same_rank(&[c1, c2])
     }
 }
 
@@ -93,10 +93,10 @@ fn is_triple(num_jokers: usize, c1: Card, c2: Card, c3: Card) -> bool {
         true
     } else if num_jokers == 1 {
         // c2's and c3's rank better match
-        match_ranks(&[c2, c3])
+        all_same_rank(&[c2, c3])
     } else {
         // all 3 ranks better match
-        match_ranks(&[c1, c2, c3])
+        all_same_rank(&[c1, c2, c3])
     }
 }
 
@@ -107,23 +107,23 @@ fn classify_poker_hand(num_jokers: usize, cards: &[Card]) -> Option<Hand> {
     let playing_cards = &cards[num_jokers..];
 
     let num_jokers = num_jokers as i32;
-    let (counter_ranks, counter_suits) = count_instances(playing_cards);
+    let (counter_ranks, counter_suits) = count_cards(playing_cards);
     let highest_suit_freq = *counter_suits.iter().max().unwrap();
     let highest_rank_freq = *counter_ranks.iter().max().unwrap();
     let num_pairs = counter_ranks.iter().filter(|&&x| x == 2).count();
 
-    let is_straight = consecutive_ranks(num_jokers, playing_cards);
+    let is_straight = is_straight(num_jokers, playing_cards);
     let is_flush = highest_suit_freq == playing_cards.len() as i32;
 
-    let ptype = if is_straight && is_flush || num_jokers == 4 {
+    if is_straight && is_flush || num_jokers == 4 {
         Some(PokerType::StraightFlush)
     } else if num_jokers + highest_rank_freq == 5 {
         Some(PokerType::FiveKind)
     } else if num_jokers + highest_rank_freq == 4 {
         Some(PokerType::FourKind)
-    } else if (num_jokers == 1 && num_pairs == 2)
-        || (num_pairs == 1 && highest_rank_freq == 3)
-    {
+    } else if num_jokers == 1 && num_pairs == 2 {
+        Some(PokerType::FullHouse)
+    } else if (num_pairs > 0 && highest_rank_freq == 3) {
         Some(PokerType::FullHouse)
     } else if is_straight {
         Some(PokerType::Straight)
@@ -143,7 +143,7 @@ fn classify_poker_hand(num_jokers: usize, cards: &[Card]) -> Option<Hand> {
  3) No jokers in the sequence of cards provided.
 */
 
-fn count_instances(cards: &[Card]) -> ([i32; 13], [i32; 4]) {
+fn count_cards(cards: &[Card]) -> ([i32; 13], [i32; 4]) {
     let mut counter_rank = [0; 13];
     let mut counter_suit = [0; 4];
     cards
@@ -156,7 +156,7 @@ fn count_instances(cards: &[Card]) -> ([i32; 13], [i32; 4]) {
     (counter_rank, counter_suit)
 }
 
-fn match_ranks(cards: &[Card]) -> bool {
+fn all_same_rank(cards: &[Card]) -> bool {
     let rank = cards[0].rank().unwrap();
     cards
         .iter()
@@ -164,15 +164,7 @@ fn match_ranks(cards: &[Card]) -> bool {
         .all(|other_rank| rank == other_rank)
 }
 
-fn match_suit(cards: &[Card]) -> bool {
-    let suit = cards[0].suit().unwrap();
-    cards
-        .iter()
-        .map(|card| card.suit().unwrap())
-        .all(|other_suit| suit == other_suit)
-}
-
-fn consecutive_ranks(num_jokers: i32, cards: &[Card]) -> bool {
+fn is_straight(num_jokers: i32, cards: &[Card]) -> bool {
     // TODO: allow straights where Ace or 2 are the first members (loop-around
     // straights).
     let mut num_jokers = num_jokers;
