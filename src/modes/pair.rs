@@ -79,3 +79,46 @@ impl PartialOrd for Pair {
         Some(self.cmp(other))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use crate::card::make_decks;
+
+    use super::*;
+
+    fn exhaustive_pairs() -> Vec<Pair> {
+        let deck = make_decks(1);
+        let mut pairs: Vec<Pair> = Vec::with_capacity(deck.len() * deck.len());
+        for i in 0..deck.len() {
+            let c1 = deck[i];
+            for j in (i + 1)..deck.len() {
+                let c2 = deck[j];
+                let pair = Pair::new(c1, c2);
+                if (pair.is_some()) {
+                    pairs.push(pair.unwrap());
+                }
+            }
+        }
+        pairs
+    }
+
+    #[test]
+    fn new() {
+        todo!("Implement tests for Pair::new");
+    }
+
+    #[test]
+    fn ordering() {
+        todo!("Implement tests for Pair ordering");
+    }
+
+    #[test]
+    fn footstool() {
+        todo!("Implement tests for Pair footstools");
+    }
+
+    #[test]
+    fn footstool_deck_irrelevance() {
+        todo!("Implement tests for Pair footstool deck irrelevance");
+    }
+}
