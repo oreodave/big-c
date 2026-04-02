@@ -48,7 +48,7 @@ mod tests {
     };
 
     #[test]
-    fn invalid_singles() {
+    fn new() {
         let deck = make_decks(1);
         let singles: Vec<Option<Single>> =
             deck.iter().map(|&c| Single::new(c)).collect();
@@ -71,7 +71,7 @@ mod tests {
     }
 
     #[test]
-    fn footstools() {
+    fn footstool() {
         let deck = make_decks(1);
         let deck = &deck[2..]; // skip the jokers
         let singles: Vec<Single> =
@@ -93,6 +93,7 @@ mod tests {
             // s2 is half-footstooled by s3, and s1 is half footstooled by s2.
             assert!(s3_on_s2 == Footstool::Half);
             assert!(s2_on_s1 == Footstool::Half);
+
             // s1 does not footstool whatsoever with s3
             assert!(s1_on_s3 == Footstool::None);
             assert!(s3_on_s1 == Footstool::None);
@@ -143,7 +144,7 @@ mod tests {
     }
 
     #[test]
-    fn deck_irrelevance() {
+    fn footstool_deck_irrelevance() {
         // For a fixed card, comparing to another deck's cards doesn't change if
         // it gets footstooled.
         let pivot = PlayingCard::new(0, Rank::Three, Suit::Club);
