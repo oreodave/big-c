@@ -2,7 +2,7 @@ use crate::card::{Card, PlayingCard};
 use crate::helper::ordered;
 
 #[derive(Eq, Debug, Copy, Clone)]
-pub struct Pair(Card, Card);
+pub struct Pair(pub Card, pub Card);
 
 impl Pair {
     /** Create a new pair utilising two cards, `c1` and `c2`.  Will return None
