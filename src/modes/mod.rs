@@ -24,13 +24,13 @@ mod tests {
     ) -> (Footstool, Footstool) {
         let res1 = x.footstool(y);
         let res2 = y.footstool(x);
-        assert!(match (res1, res2) {
+        matches!(
+            (res1, res2),
             (Footstool::None, Footstool::None)
-            | (Footstool::None, Footstool::Half)
-            | (Footstool::Half, Footstool::None)
-            | (Footstool::Full, Footstool::Full) => true,
-            _ => false,
-        });
+                | (Footstool::None, Footstool::Half)
+                | (Footstool::Half, Footstool::None)
+                | (Footstool::Full, Footstool::Full)
+        );
         (res1, res2)
     }
 }
