@@ -9,6 +9,8 @@ pub enum Footstool {
 }
 
 pub trait Hand {
+    /** Given two instances of a Hand (`self` and `other`), verify if `self`
+    footstools `other`. */
     fn footstool(&self, other: &Self) -> Footstool;
 }
 

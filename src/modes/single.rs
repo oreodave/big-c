@@ -4,6 +4,12 @@ use crate::card::Card;
 pub struct Single(Card);
 
 impl Single {
+    /** Create a new single from a card `c`.  Will return None if a Single
+    cannot be constructed from that card.
+
+    The only situation where a card cannot be converted into a Single is if it's
+    a Joker.
+    */
     fn new(c: Card) -> Option<Single> {
         (!c.is_joker()).then_some(Single(c))
     }
