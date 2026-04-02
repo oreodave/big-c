@@ -1,7 +1,7 @@
 use crate::card::{Card, PlayingCard};
 use crate::helper::ordered;
 
-#[derive(Debug, Copy, Clone)]
+#[derive(Eq, Debug, Copy, Clone)]
 pub struct Pair(Card, Card);
 
 impl Pair {
@@ -46,3 +46,27 @@ impl Display for Pair {
     }
 }
 
+use std::cmp::Ordering;
+
+impl Ord for Pair {
+    fn cmp(&self, other: &Self) -> Ordering {
+        match (self.0.cmp(&other.0), self.1.cmp(&other.1)) {
+            // If Pair::1 are equal, then it's dependent on Pair::0
+            (x, Ordering::Equal) => x,
+            // Otherwise leave it to Pair::1
+            (_, x) => x,
+        }
+    }
+}
+
+impl PartialEq for Pair {
+    fn eq(&self, other: &Self) -> bool {
+        self.cmp(other) == Ordering::Equal
+    }
+}
+
+impl PartialOrd for Pair {
+    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
+        Some(self.cmp(other))
+    }
+}
