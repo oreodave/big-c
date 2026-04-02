@@ -9,7 +9,7 @@ pub enum Footstool {
 }
 
 pub trait Hand {
-    fn footstool(&self, other: Self) -> Footstool;
+    fn footstool(&self, other: &Self) -> Footstool;
 }
 
 mod tests {
@@ -22,8 +22,8 @@ mod tests {
         x: &T,
         y: &T,
     ) -> (Footstool, Footstool) {
-        let res1 = x.footstool(*y);
-        let res2 = y.footstool(*x);
+        let res1 = x.footstool(y);
+        let res2 = y.footstool(x);
         assert!(match (res1, res2) {
             (Footstool::None, Footstool::None)
             | (Footstool::None, Footstool::Half)

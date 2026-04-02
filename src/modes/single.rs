@@ -12,7 +12,7 @@ impl Single {
 use crate::modes::{Footstool, Hand};
 
 impl Hand for Single {
-    fn footstool(&self, other: Self) -> Footstool {
+    fn footstool(&self, other: &Self) -> Footstool {
         let self_abs = self.0.deck_abs();
         let other_abs = other.0.deck_abs();
 
@@ -76,7 +76,7 @@ mod tests {
                 (single_slice[0], single_slice[1], single_slice[2]);
 
             // A single is always full footstooled by itself
-            assert!(s1.footstool(s1) == Footstool::Full);
+            assert!(s1.footstool(&s1) == Footstool::Full);
 
             // Test general non-reflexivity of the footstool relation and get
             // back some results we'd like to verify further.
@@ -152,10 +152,10 @@ mod tests {
             let piv_after = Single(Card::from(i64::from(piv_copy.0) + 1));
             let piv_way_after = Single(Card::from(i64::from(piv_copy.0) + 2));
 
-            assert!(pivot.footstool(piv_copy) == Footstool::Full);
-            assert!(pivot.footstool(piv_before) == Footstool::Half);
-            assert!(piv_after.footstool(pivot) == Footstool::Half);
-            assert!(pivot.footstool(piv_way_after) == Footstool::None);
+            assert!(pivot.footstool(&piv_copy) == Footstool::Full);
+            assert!(pivot.footstool(&piv_before) == Footstool::Half);
+            assert!(piv_after.footstool(&pivot) == Footstool::Half);
+            assert!(pivot.footstool(&piv_way_after) == Footstool::None);
         }
     }
 }
