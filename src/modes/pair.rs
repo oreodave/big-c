@@ -5,6 +5,12 @@ use crate::helper::ordered;
 pub struct Pair(Card, Card);
 
 impl Pair {
+    /** Create a new pair utilising two cards, `c1` and `c2`.  Will return None
+    if a Pair cannot be constructed out of the two cards.
+
+    NOTE: By construction, if the Pair includes a Joker, that Joker will be the
+    first member of the pair.
+     */
     fn new(c1: Card, c2: Card) -> Option<Pair> {
         // Order the cards.  This means if xor(c1 is joker, c2 is joker) c1 will
         // be that joker.
