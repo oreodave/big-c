@@ -35,7 +35,7 @@ impl Hand for Single {
 use std::fmt::{Display, Formatter, Result};
 impl Display for Single {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "Single({})", self.0)
+        write!(f, "Single[{}]", self.0)
     }
 }
 

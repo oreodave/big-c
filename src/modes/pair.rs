@@ -55,7 +55,7 @@ use std::fmt::{Display, Formatter, Result};
 
 impl Display for Pair {
     fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "Pair({}, {})", self.0, self.1)
+        write!(f, "Pair[{}, {}]", self.0, self.1)
     }
 }
 
