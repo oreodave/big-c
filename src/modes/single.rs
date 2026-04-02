@@ -33,3 +33,136 @@ impl Display for Single {
         write!(f, "Single({})", self.0)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::card::{make_decks, PlayingCard, Rank, Suit};
+
+    #[test]
+    fn invalid_singles() {
+        let deck = make_decks(1);
+        let singles: Vec<Option<Single>> =
+            deck.iter().map(|&c| Single::new(c)).collect();
+        let valid_singles: Vec<Single> = singles
+            .iter()
+            .filter(|x| !x.is_none())
+            .map(|x| x.unwrap())
+            .collect();
+
+        // There are exactly two cards in a single deck that aren't valid
+        // singles.  In other words, all other cards are valid.
+        assert!(valid_singles.len() == deck.len() - 2);
+
+        // All valid singles are playing cards.
+        assert!(valid_singles.iter().all(|Single(card)| !card.is_joker()));
+
+        // By the previous two results, the only invalid singles are jokers.  A
+        // direct test of this is fine as well.
+        assert!(Single::new(Card::from(-1)).is_none());
+    }
+
+    #[test]
+    fn footstools() {
+        let deck = make_decks(1);
+        let deck = &deck[2..]; // skip the jokers
+        let singles: Vec<Single> =
+            deck.iter().map(|&c| Single::new(c).unwrap()).collect();
+
+        singles.windows(3).for_each(|single_slice| {
+            let (s1, s2, s3) =
+                (single_slice[0], single_slice[1], single_slice[2]);
+
+            // A single is full footstooled by itself
+            assert!(s1.footstool(s1) == Footstool::Full);
+
+            // s2 is half-footstooled by s3, and s1 is half footstooled by s2.
+            assert!(s3.footstool(s2) == Footstool::Half);
+            assert!(s2.footstool(s1) == Footstool::Half);
+
+            // Footstooling is not a reflexive relation
+            assert!(s1.footstool(s2) == Footstool::None);
+            assert!(s2.footstool(s3) == Footstool::None);
+
+            // s1 does not footstool whatsoever with s3
+            assert!(s1.footstool(s3) == Footstool::None);
+            assert!(s3.footstool(s1) == Footstool::None);
+        });
+
+        // An exhaustive check to verify that:
+        // 1) All footstool results are not reflexive.
+        // 2) A single is ONLY full-footstooled by itself
+        // 3) A single is half-footstooled by at most one singles
+        // 4) A single is not footstooled by any other singles
+        for single in &singles {
+            // Check footstools against every other card
+            let footstool_results: Vec<(Footstool, Footstool)> = singles
+                .iter()
+                .map(|&other_single| {
+                    (
+                        single.footstool(other_single),
+                        other_single.footstool(*single),
+                    )
+                })
+                .collect();
+
+            // (1)
+            assert!(footstool_results.iter().all(|(x, y)| match (x, y) {
+                (Footstool::None, Footstool::None) => true,
+                (Footstool::Half, Footstool::None)
+                | (Footstool::None, Footstool::Half) => true,
+                (Footstool::Full, Footstool::Full) => true,
+                _ => false,
+            }));
+            let footstool_results: Vec<Footstool> =
+                footstool_results.iter().map(|x| x.0).collect();
+
+            // (2)
+            let full_footstools = footstool_results
+                .iter()
+                .filter(|&&x| x == Footstool::Full)
+                .count();
+            assert!(full_footstools == 1);
+
+            // (3)
+            let half_footstools = footstool_results
+                .iter()
+                .filter(|&&x| x == Footstool::Half)
+                .count();
+            assert!(half_footstools <= 1);
+
+            // (4)
+            let non_footstools = footstool_results
+                .iter()
+                .filter(|&&x| x == Footstool::None)
+                .count();
+            assert!(
+                non_footstools < singles.len()
+                    && non_footstools >= singles.len() - 3
+            );
+        }
+    }
+
+    #[test]
+    fn deck_irrelevance() {
+        // For a fixed card, comparing to another deck's cards doesn't change if
+        // it gets footstooled.
+        let pivot = PlayingCard::new(0, Rank::Three, Suit::Club);
+        let pivot = Card::PlayingCard(pivot);
+        let pivot = Single(pivot);
+        for i in 1..10 {
+            let piv_copy = Single(Card::PlayingCard(PlayingCard {
+                deck: i,
+                ..pivot.0.playing_card().unwrap()
+            }));
+            let piv_before = Single(Card::from(i64::from(piv_copy.0) - 1));
+            let piv_after = Single(Card::from(i64::from(piv_copy.0) + 1));
+            let piv_way_after = Single(Card::from(i64::from(piv_copy.0) + 2));
+
+            assert!(pivot.footstool(piv_copy) == Footstool::Full);
+            assert!(pivot.footstool(piv_before) == Footstool::Half);
+            assert!(piv_after.footstool(pivot) == Footstool::Half);
+            assert!(pivot.footstool(piv_way_after) == Footstool::None);
+        }
+    }
+}
