@@ -78,11 +78,11 @@ impl Card {
     }
 
     pub fn rank(&self) -> Option<Rank> {
-        self.playing_card().and_then(|pc| Some(pc.rank))
+        self.playing_card().map(|pc| pc.rank)
     }
 
     pub fn suit(&self) -> Option<Suit> {
-        self.playing_card().and_then(|pc| Some(pc.suit))
+        self.playing_card().map(|pc| pc.suit)
     }
 }
 
@@ -226,7 +226,7 @@ mod traits_numerics {
 
     impl From<PlayingCard> for i64 {
         fn from(card: PlayingCard) -> i64 {
-            let deck = card.deck as i64;
+            let deck = card.deck;
             let rank = card.rank as i64;
             let suit = card.suit as i64;
             (deck * 52) + (rank * 4) + suit

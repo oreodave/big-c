@@ -29,7 +29,7 @@ fn main() {
     }
     println!();
 
-    let hand = classify(&hand);
+    let hand = classify(hand);
     match hand {
         Some(hand) => println!("{}", hand),
         None => println!("Not a hand"),

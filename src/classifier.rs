@@ -93,8 +93,7 @@ fn try_poker_hand(num_jokers: usize, cards: &[Card]) -> Option<PokerType> {
     let (highest_rank_freq, num_pairs) = {
         let mut highest_rank_freq = 0;
         let mut num_pairs = 0;
-        for i in 0..counter_ranks.len() {
-            let rank_freq = counter_ranks[i];
+        for rank_freq in counter_ranks {
             highest_rank_freq = std::cmp::max(rank_freq, highest_rank_freq);
             if rank_freq == 2 {
                 num_pairs += 1
