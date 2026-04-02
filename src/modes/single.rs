@@ -18,6 +18,11 @@ impl Single {
 use crate::modes::{Footstool, Hand};
 
 impl Hand for Single {
+    fn is_proper(&self) -> bool {
+        // Always true as Jokers are not allowed
+        true
+    }
+
     fn footstool(&self, other: &Self) -> Footstool {
         let self_abs = self.0.deck_abs();
         let other_abs = other.0.deck_abs();
