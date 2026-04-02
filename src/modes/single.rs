@@ -9,7 +9,6 @@ impl Single {
     }
 }
 
-use crate::helper::ordered;
 use crate::modes::{Footstool, Hand};
 
 impl Hand for Single {
@@ -37,7 +36,10 @@ impl Display for Single {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::card::{make_decks, PlayingCard, Rank, Suit};
+    use crate::{
+        card::{make_decks, PlayingCard, Rank, Suit},
+        modes::tests::test_non_reflexivity,
+    };
 
     #[test]
     fn invalid_singles() {
@@ -73,20 +75,21 @@ mod tests {
             let (s1, s2, s3) =
                 (single_slice[0], single_slice[1], single_slice[2]);
 
-            // A single is full footstooled by itself
+            // A single is always full footstooled by itself
             assert!(s1.footstool(s1) == Footstool::Full);
 
+            // Test general non-reflexivity of the footstool relation and get
+            // back some results we'd like to verify further.
+            let (_, s2_on_s1) = test_non_reflexivity(&s1, &s2);
+            let (_, s3_on_s2) = test_non_reflexivity(&s2, &s3);
+            let (s1_on_s3, s3_on_s1) = test_non_reflexivity(&s1, &s3);
+
             // s2 is half-footstooled by s3, and s1 is half footstooled by s2.
-            assert!(s3.footstool(s2) == Footstool::Half);
-            assert!(s2.footstool(s1) == Footstool::Half);
-
-            // Footstooling is not a reflexive relation
-            assert!(s1.footstool(s2) == Footstool::None);
-            assert!(s2.footstool(s3) == Footstool::None);
-
+            assert!(s3_on_s2 == Footstool::Half);
+            assert!(s2_on_s1 == Footstool::Half);
             // s1 does not footstool whatsoever with s3
-            assert!(s1.footstool(s3) == Footstool::None);
-            assert!(s3.footstool(s1) == Footstool::None);
+            assert!(s1_on_s3 == Footstool::None);
+            assert!(s3_on_s1 == Footstool::None);
         });
 
         // An exhaustive check to verify that:
@@ -99,21 +102,11 @@ mod tests {
             let footstool_results: Vec<(Footstool, Footstool)> = singles
                 .iter()
                 .map(|&other_single| {
-                    (
-                        single.footstool(other_single),
-                        other_single.footstool(*single),
-                    )
+                    // We verify (1) here
+                    test_non_reflexivity(single, &other_single)
                 })
                 .collect();
 
-            // (1)
-            assert!(footstool_results.iter().all(|(x, y)| match (x, y) {
-                (Footstool::None, Footstool::None) => true,
-                (Footstool::Half, Footstool::None)
-                | (Footstool::None, Footstool::Half) => true,
-                (Footstool::Full, Footstool::Full) => true,
-                _ => false,
-            }));
             let footstool_results: Vec<Footstool> =
                 footstool_results.iter().map(|x| x.0).collect();
 
