@@ -39,6 +39,18 @@ impl Pair {
     }
 }
 
+use crate::modes::single::Single;
+use crate::modes::{Footstool, Hand};
+
+impl Hand for Pair {
+    fn footstool(&self, other: &Self) -> Footstool {
+        // A pair footstools the other <=> the highest cards of both footstool
+        // each other => we can rely on the footstool implementation of Single
+        // for this.
+        Single(self.1).footstool(&Single(other.1))
+    }
+}
+
 use std::fmt::{Display, Formatter, Result};
 
 impl Display for Pair {
