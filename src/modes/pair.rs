@@ -50,12 +50,8 @@ use std::cmp::Ordering;
 
 impl Ord for Pair {
     fn cmp(&self, other: &Self) -> Ordering {
-        match (self.0.cmp(&other.0), self.1.cmp(&other.1)) {
-            // If Pair::1 are equal, then it's dependent on Pair::0
-            (x, Ordering::Equal) => x,
-            // Otherwise leave it to Pair::1
-            (_, x) => x,
-        }
+        // We order pairs by their "best" member i.e. Pair::1
+        self.1.cmp(&other.1)
     }
 }
 
