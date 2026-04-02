@@ -1,3 +1,6 @@
+// permit dead code when not using clippy
+#![cfg_attr(not(clippy), allow(dead_code))]
+
 mod card;
 mod helper;
 mod modes;
