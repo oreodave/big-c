@@ -99,19 +99,25 @@ impl PartialOrd for Pair {
 
 #[cfg(test)]
 mod tests {
-    use crate::card::make_decks;
-
     use super::*;
+    use crate::card::make_decks;
 
     fn exhaustive_pairs() -> Vec<Pair> {
         let deck = make_decks(1);
-        let mut pairs: Vec<Pair> = Vec::with_capacity(deck.len() * deck.len());
+        // Each rank (4 cards) can form:
+        // 1) 10 proper pairs: 4 self pairs + 6 pairs with different suits
+        // 2) 8 improper pairs: 2 jokers * 4 cards in a rank.
+        // => 18 pairs per rank.
+        let mut pairs: Vec<Pair> = Vec::with_capacity(13 * 18);
+
+        // This is technically a bunch of wasted effort, but for the sake of
+        // testing it's necessary.
         for i in 0..deck.len() {
             let c1 = deck[i];
-            for j in (i + 1)..deck.len() {
+            for j in i..deck.len() {
                 let c2 = deck[j];
                 let pair = Pair::new(c1, c2);
-                if (pair.is_some()) {
+                if pair.is_some() {
                     pairs.push(pair.unwrap());
                 }
             }
