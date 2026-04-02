@@ -94,8 +94,9 @@ pub fn all_same_rank(cards: &[PlayingCard]) -> bool {
 }
 
 /** Generate a vector of cards representing the concatenation of
- * `number_of_decks` decks of playing cards put together.  Note that each deck
- * gets two jokers - this is added to the overall vector.
+`number_of_decks` decks of playing cards put together.
+
+Note that each deck gets two jokers - this is added to the overall vector.
  */
 pub fn make_decks(number_of_decks: usize) -> Vec<Card> {
     let number_of_decks: i64 = number_of_decks.try_into().unwrap();

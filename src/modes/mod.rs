@@ -16,7 +16,7 @@ mod tests {
     use super::*;
 
     /** Given two hands, assert that their footstool condition is non-reflexive.
-     * Return the results of the two footstool checks (x on y, y on x).
+    Return the results of the two footstool checks (x on y, y on x).
      */
     pub fn test_non_reflexivity<T: Hand + Copy>(
         x: &T,
