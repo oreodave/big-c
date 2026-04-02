@@ -97,7 +97,7 @@ mod tests {
             assert!(s3_on_s2 == Footstool::Half);
             assert!(s2_on_s1 == Footstool::Half);
 
-            // TEST: s1 does not footstool whatsoever with s3
+            // TEST: s1 does not footstool whatsoever with s3.
             assert!(s1_on_s3 == Footstool::None);
             assert!(s3_on_s1 == Footstool::None);
         });
@@ -121,7 +121,7 @@ mod tests {
                 .count();
             assert!(full_footstools == 1);
 
-            // TEST: A single is half-footstooled by at most one singles
+            // TEST: A single is half-footstooled by at most one single.
             let half_footstools = footstool_results
                 .iter()
                 .filter(|&&x| x == Footstool::Half)
@@ -142,7 +142,7 @@ mod tests {
 
     #[test]
     fn footstool_deck_irrelevance() {
-        // For a fixed card, comparing to another deck's cards doesn't change if
+        // For a fixed Single, comparing to another deck's cards doesn't change if
         // it gets footstooled.
         let pivot = PlayingCard::new(0, Rank::Three, Suit::Club);
         let pivot = Card::PlayingCard(pivot);
@@ -158,12 +158,12 @@ mod tests {
             let piv_after = Single(Card::from(i64::from(piv_copy.0) + 1));
             let piv_way_after = Single(Card::from(i64::from(piv_copy.0) + 2));
 
-            // TEST: a card may be footstooled by a card from another deck with
+            // TEST: a single may be footstooled by a single from another deck with
             // the same rank and suit.
             let (piv_on_piv_copy, _) = test_non_reflexivity(&pivot, &piv_copy);
             assert!(piv_on_piv_copy == Footstool::Full);
 
-            // TEST: A card may be half footstooled by cards from another deck.
+            // TEST: A single may be half footstooled by singles from another deck.
             let (piv_on_piv_before, _) =
                 test_non_reflexivity(&pivot, &piv_before);
             assert!(piv_on_piv_before == Footstool::Half);
@@ -172,7 +172,8 @@ mod tests {
                 test_non_reflexivity(&pivot, &piv_after);
             assert!(piv_after_on_piv == Footstool::Half);
 
-            // TEST: A card is still not footstooled by
+            // TEST: A single is still not footstooled by singles from other
+            // decks that aren't adjacent.
             let (piv_on_piv_way_after, _) =
                 test_non_reflexivity(&pivot, &piv_way_after);
             assert!(piv_on_piv_way_after == Footstool::None);
