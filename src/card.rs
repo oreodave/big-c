@@ -257,6 +257,24 @@ mod traits_numerics {
 mod traits_ord {
     use super::*;
     use std::cmp::Ordering;
+
+    impl Ord for PlayingCard {
+        fn cmp(&self, other: &Self) -> Ordering {
+            self.abs().cmp(&other.abs())
+        }
+    }
+
+    impl Ord for Card {
+        fn cmp(&self, other: &Self) -> Ordering {
+            match (self, other) {
+                (Self::PlayingCard(c1), Self::PlayingCard(c2)) => c1.cmp(c2),
+                (Self::Joker(_), Self::Joker(_)) => Ordering::Equal,
+                (Self::Joker(_), _) => Ordering::Less,
+                (_, Self::Joker(_)) => Ordering::Greater,
+            }
+        }
+    }
+
     impl PartialEq for PlayingCard {
         fn eq(&self, other: &Self) -> bool {
             self.cmp(other) == Ordering::Equal
@@ -278,23 +296,6 @@ mod traits_ord {
     impl PartialOrd for Card {
         fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
             Some(self.cmp(other))
-        }
-    }
-
-    impl Ord for PlayingCard {
-        fn cmp(&self, other: &Self) -> Ordering {
-            self.abs().cmp(&other.abs())
-        }
-    }
-
-    impl Ord for Card {
-        fn cmp(&self, other: &Self) -> Ordering {
-            match (self, other) {
-                (Self::PlayingCard(c1), Self::PlayingCard(c2)) => c1.cmp(c2),
-                (Self::Joker(_), Self::Joker(_)) => Ordering::Equal,
-                (Self::Joker(_), _) => Ordering::Less,
-                (_, Self::Joker(_)) => Ordering::Greater,
-            }
         }
     }
 }
