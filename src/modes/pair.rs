@@ -127,7 +127,69 @@ mod tests {
 
     #[test]
     fn new() {
-        todo!("Implement tests for Pair::new");
+        // Two jokers can never be a pair.
+        assert_eq!(Pair::new(Card::joker(), Card::joker()), None);
+
+        for rank in 0..13 {
+            // Vector of cards of a rank: size 4.
+            let rank_cards: Vec<Card> = ((rank * 4)..((rank + 1) * 4))
+                .into_iter()
+                .map(Card::from)
+                .collect();
+
+            for &c1 in &rank_cards {
+                for &c2 in &rank_cards {
+                    // TEST: Pairs are composed of two similar rank cards.
+                    let pair = {
+                        let pair = Pair::new(c1, c2);
+                        assert_ne!(pair, None);
+                        pair.unwrap()
+                    };
+
+                    // Test: Pairs of two playing cards are proper
+                    assert!(pair.is_proper());
+
+                    // TEST: Pairs always sort their cards in strength.
+                    let (b1, b2) = ordered(c1, c2);
+                    assert_eq!(pair.0, b1);
+                    assert_eq!(pair.1, b2);
+                }
+
+                // TEST: Pairs may have one joker.
+                let pair = {
+                    let p = Pair::new(c1, Card::joker());
+                    assert_ne!(p, None);
+                    p.unwrap()
+                };
+
+                // TEST: Pairs with a joker are improper.
+                assert!(pair.is_improper());
+
+                // TEST: Improper pairs have a Joker in Pair::0.
+                assert!(matches!(pair.0, Card::Joker(_)));
+                assert!(matches!(pair.1, Card::PlayingCard(_)));
+            }
+
+            for opposing_rank in 0..13 {
+                if rank == opposing_rank {
+                    continue;
+                }
+
+                assert!(rank != opposing_rank);
+                let opposing_rank_cards: Vec<Card> = ((opposing_rank * 4)
+                    ..((opposing_rank + 1) * 4))
+                    .into_iter()
+                    .map(Card::from)
+                    .collect();
+
+                // TEST: Two playing cards of differing rank can never be a pair.
+                for &r1 in &rank_cards {
+                    for &r2 in &opposing_rank_cards {
+                        assert_eq!(Pair::new(r1, r2), None);
+                    }
+                }
+            }
+        }
     }
 
     #[test]
