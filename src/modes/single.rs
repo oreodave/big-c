@@ -49,6 +49,9 @@ mod tests {
 
     #[test]
     fn new() {
+        // TEST: Jokers are not valid singles.
+        assert!(Single::new(Card::joker()).is_none());
+
         let deck = make_decks(1);
         let singles: Vec<Option<Single>> =
             deck.iter().map(|&c| Single::new(c)).collect();
@@ -58,16 +61,11 @@ mod tests {
             .map(|x| x.unwrap())
             .collect();
 
-        // There are exactly two cards in a single deck that aren't valid
-        // singles.  In other words, all other cards are valid.
+        // TEST: Only two cards in a single deck aren't valid singles.
         assert!(valid_singles.len() == deck.len() - 2);
 
-        // All valid singles are playing cards.
+        // TEST: All valid singles are playing cards.
         assert!(valid_singles.iter().all(|Single(card)| !card.is_joker()));
-
-        // By the previous two results, the only invalid singles are jokers.  A
-        // direct test of this is fine as well.
-        assert!(Single::new(Card::from(-1)).is_none());
     }
 
     #[test]
@@ -81,35 +79,29 @@ mod tests {
             let (s1, s2, s3) =
                 (single_slice[0], single_slice[1], single_slice[2]);
 
-            // A single is always full footstooled by itself
+            // TEST: A single is always full footstooled by itself.
             assert!(s1.footstool(&s1) == Footstool::Full);
 
-            // Test general non-reflexivity of the footstool relation and get
-            // back some results we'd like to verify further.
+            // TEST: non-reflexivity of footstool on neighbours.
             let (_, s2_on_s1) = test_non_reflexivity(&s1, &s2);
             let (_, s3_on_s2) = test_non_reflexivity(&s2, &s3);
             let (s1_on_s3, s3_on_s1) = test_non_reflexivity(&s1, &s3);
 
-            // s2 is half-footstooled by s3, and s1 is half footstooled by s2.
+            // TEST: s2 is half-footstooled by s3, and s1 is half footstooled by
+            // s2.
             assert!(s3_on_s2 == Footstool::Half);
             assert!(s2_on_s1 == Footstool::Half);
 
-            // s1 does not footstool whatsoever with s3
+            // TEST: s1 does not footstool whatsoever with s3
             assert!(s1_on_s3 == Footstool::None);
             assert!(s3_on_s1 == Footstool::None);
         });
 
-        // An exhaustive check to verify that:
-        // 1) All footstool results are not reflexive.
-        // 2) A single is ONLY full-footstooled by itself
-        // 3) A single is half-footstooled by at most one singles
-        // 4) A single is not footstooled by any other singles
         for single in &singles {
-            // Check footstools against every other card
             let footstool_results: Vec<(Footstool, Footstool)> = singles
                 .iter()
                 .map(|&other_single| {
-                    // We verify (1) here
+                    // TEST: All footstool results are non-reflexive.
                     test_non_reflexivity(single, &other_single)
                 })
                 .collect();
@@ -117,21 +109,21 @@ mod tests {
             let footstool_results: Vec<Footstool> =
                 footstool_results.iter().map(|x| x.0).collect();
 
-            // (2)
+            // TEST: A single is only full-footstooled by itself.
             let full_footstools = footstool_results
                 .iter()
                 .filter(|&&x| x == Footstool::Full)
                 .count();
             assert!(full_footstools == 1);
 
-            // (3)
+            // TEST: A single is half-footstooled by at most one singles
             let half_footstools = footstool_results
                 .iter()
                 .filter(|&&x| x == Footstool::Half)
                 .count();
             assert!(half_footstools <= 1);
 
-            // (4)
+            // TEST: A single is not footstooled by any other singles.
             let non_footstools = footstool_results
                 .iter()
                 .filter(|&&x| x == Footstool::None)
@@ -150,19 +142,35 @@ mod tests {
         let pivot = PlayingCard::new(0, Rank::Three, Suit::Club);
         let pivot = Card::PlayingCard(pivot);
         let pivot = Single(pivot);
+
         for i in 1..10 {
             let piv_copy = Single(Card::PlayingCard(PlayingCard {
                 deck: i,
                 ..pivot.0.playing_card().unwrap()
             }));
+
             let piv_before = Single(Card::from(i64::from(piv_copy.0) - 1));
             let piv_after = Single(Card::from(i64::from(piv_copy.0) + 1));
             let piv_way_after = Single(Card::from(i64::from(piv_copy.0) + 2));
 
-            assert!(pivot.footstool(&piv_copy) == Footstool::Full);
-            assert!(pivot.footstool(&piv_before) == Footstool::Half);
-            assert!(piv_after.footstool(&pivot) == Footstool::Half);
-            assert!(pivot.footstool(&piv_way_after) == Footstool::None);
+            // TEST: a card may be footstooled by a card from another deck with
+            // the same rank and suit.
+            let (piv_on_piv_copy, _) = test_non_reflexivity(&pivot, &piv_copy);
+            assert!(piv_on_piv_copy == Footstool::Full);
+
+            // TEST: A card may be half footstooled by cards from another deck.
+            let (piv_on_piv_before, _) =
+                test_non_reflexivity(&pivot, &piv_before);
+            assert!(piv_on_piv_before == Footstool::Half);
+
+            let (_, piv_after_on_piv) =
+                test_non_reflexivity(&pivot, &piv_after);
+            assert!(piv_after_on_piv == Footstool::Half);
+
+            // TEST: A card is still not footstooled by
+            let (piv_on_piv_way_after, _) =
+                test_non_reflexivity(&pivot, &piv_way_after);
+            assert!(piv_on_piv_way_after == Footstool::None);
         }
     }
 }
