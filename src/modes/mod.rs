@@ -10,8 +10,16 @@ pub enum Footstool {
 
 pub trait Hand {
     /** Given two instances of a Hand (`self` and `other`), verify if `self`
-    footstools `other`. */
+    footstools `other`.
+     */
     fn footstool(&self, other: &Self) -> Footstool;
+
+    // Only need to implement is_proper.
+    fn is_proper(&self) -> bool;
+
+    fn is_improper(&self) -> bool {
+        !self.is_proper()
+    }
 }
 
 mod tests {

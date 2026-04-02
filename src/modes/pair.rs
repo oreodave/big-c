@@ -43,6 +43,10 @@ use crate::modes::single::Single;
 use crate::modes::{Footstool, Hand};
 
 impl Hand for Pair {
+    fn is_proper(&self) -> bool {
+        matches!(self.0, Card::PlayingCard(_))
+    }
+
     fn footstool(&self, other: &Self) -> Footstool {
         // A pair footstools the other <=> the highest cards of both footstool
         // each other => we can rely on the footstool implementation of Single
