@@ -86,6 +86,17 @@ impl Card {
     }
 }
 
+/** Given a sequence of Playing Cards, check if they are all of the same rank.
+ */
+pub fn all_same_rank(cards: &[PlayingCard]) -> bool {
+    let rank = cards[0].rank;
+    cards[1..].iter().all(|card| rank == card.rank)
+}
+
+/** Generate a vector of cards representing the concatenation of
+ * `number_of_decks` decks of playing cards put together.  Note that each deck
+ * gets two jokers - this is added to the overall vector.
+ */
 pub fn make_decks(number_of_decks: usize) -> Vec<Card> {
     let number_of_decks: i64 = number_of_decks.try_into().unwrap();
     (-(number_of_decks * 2)..(52 * number_of_decks))
