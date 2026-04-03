@@ -15,7 +15,7 @@ impl Pair {
     fn new(c1: Card, c2: Card) -> Option<Pair> {
         // Order the cards.  This means if xor(c1 is joker, c2 is joker) c1 will
         // be that joker.
-        let (c1, c2) = ordered(c1, c2);
+        let [c1, c2] = ordered([c1, c2]);
 
         match (c1, c2) {
             // Can't be a pair if you got two jokers homie.
@@ -192,7 +192,7 @@ mod tests {
             })
             .for_each(|(c1, c2, pair)| {
                 // TEST: Pairs always sort their cards in strength.
-                let (b1, b2) = ordered(c1, c2);
+                let [b1, b2] = ordered([c1, c2]);
                 assert_eq!(pair.0, b1, "Expected {} to be {b1}", pair.0);
                 assert_eq!(pair.1, b2, "Expected {} to be {b2}", pair.1);
             });
