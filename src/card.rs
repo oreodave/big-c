@@ -131,11 +131,9 @@ pub fn all_same_rank(cards: &[PlayingCard]) -> bool {
 
 Note that each deck gets two jokers - this is added to the overall vector.
  */
-pub fn make_decks(number_of_decks: usize) -> Vec<Card> {
+pub fn make_decks(number_of_decks: usize) -> impl Iterator<Item = Card> {
     let number_of_decks: i64 = number_of_decks.try_into().unwrap();
-    (-(number_of_decks * 2)..(52 * number_of_decks))
-        .map(Card::from)
-        .collect::<Vec<_>>()
+    (-(number_of_decks * 2)..(52 * number_of_decks)).map(Card::from)
 }
 
 mod trait_display {
