@@ -189,7 +189,38 @@ mod tests {
 
     #[test]
     fn ordering() {
-        todo!("Implement tests for Pair ordering");
+        fn expected_ordering_relation(p1: &Pair, p2: &Pair) -> bool {
+            let pair_ordering = p1.cmp(p2);
+            let high_card_ordering = p1.1.cmp(&p2.1);
+
+            match (pair_ordering, high_card_ordering) {
+                // For any two pairs, we expect the high cards to dictate the
+                // ordering of the pairs - the lower card should be irrelevant.
+                (x, y) if x == y => true,
+
+                // The only instances where the high card may not dictate card
+                // ordering is if both pairs have equivalent high cards and
+                // exclusively one of the pairs is improper - pairs that are
+                // improper should be sorted less than the proper one.
+                (Ordering::Less, Ordering::Equal) => {
+                    // p1 has a joker, p2 doesn't => p2 is better than p1
+                    p1.is_improper() && p2.is_proper()
+                }
+                (Ordering::Greater, Ordering::Equal) => {
+                    // p2 has a joker, p1 doesn't => p1 is better than p2
+                    p2.is_improper() && p1.is_proper()
+                }
+                _ => false,
+            }
+        }
+
+        for p1 in &exhaustive_pairs_deck() {
+            for p2 in &exhaustive_pairs_deck() {
+                // TEST: For any two pair we expect them to have the
+                // `expected_ordering_relation`.
+                assert!(expected_ordering_relation(p1, p2));
+            }
+        }
     }
 
     #[test]
