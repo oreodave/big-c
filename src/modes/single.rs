@@ -10,7 +10,7 @@ impl Single {
     The only situation where a card cannot be converted into a Single is if it's
     a Joker.
     */
-    fn new(c: Card) -> Option<Single> {
+    pub fn new(c: Card) -> Option<Single> {
         (!c.is_joker()).then_some(Single(c))
     }
 }
