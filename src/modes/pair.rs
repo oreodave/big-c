@@ -128,7 +128,7 @@ mod tests {
     #[test]
     fn new() {
         // Two jokers can never be a pair.
-        assert_eq!(Pair::new(Card::joker(), Card::joker()), None);
+        assert_eq!(Pair::new(Card::make_joker(), Card::make_joker()), None);
 
         for rank in 0..13 {
             // Vector of cards of a rank: size 4.
@@ -157,7 +157,7 @@ mod tests {
 
                 // TEST: Pairs may have one joker.
                 let pair = {
-                    let p = Pair::new(c1, Card::joker());
+                    let p = Pair::new(c1, Card::make_joker());
                     assert_ne!(p, None);
                     p.unwrap()
                 };

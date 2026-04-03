@@ -55,7 +55,7 @@ mod tests {
     #[test]
     fn new() {
         // TEST: Jokers are not valid singles.
-        assert!(Single::new(Card::joker()).is_none());
+        assert!(Single::new(Card::make_joker()).is_none());
 
         let deck = make_decks(1);
         let singles: Vec<Option<Single>> =
