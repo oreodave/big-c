@@ -22,6 +22,7 @@ pub trait Hand {
     }
 }
 
+#[cfg(test)]
 mod tests {
     use super::*;
 

@@ -1,5 +1,7 @@
-use crate::card::{Card, PlayingCard};
-use crate::helper::ordered;
+use crate::{
+    card::{Card, PlayingCard},
+    helper::ordered,
+};
 
 #[derive(Eq, Debug, Copy, Clone)]
 pub struct Pair(pub Card, pub Card);
@@ -39,8 +41,7 @@ impl Pair {
     }
 }
 
-use crate::modes::single::Single;
-use crate::modes::{Footstool, Hand};
+use crate::modes::{single::Single, Footstool, Hand};
 
 impl Hand for Pair {
     fn is_proper(&self) -> bool {
