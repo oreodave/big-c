@@ -1,5 +1,5 @@
-mod pair;
-mod single;
+pub mod pair;
+pub mod single;
 
 #[derive(Eq, Ord, PartialEq, PartialOrd, Debug, Copy, Clone)]
 pub enum Footstool {
