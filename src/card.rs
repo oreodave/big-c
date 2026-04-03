@@ -129,7 +129,7 @@ pub fn make_decks(number_of_decks: usize) -> Vec<Card> {
     let number_of_decks: i64 = number_of_decks.try_into().unwrap();
     (-(number_of_decks * 2)..(52 * number_of_decks))
         .map(Card::from)
-        .collect::<Vec<Card>>()
+        .collect::<Vec<_>>()
 }
 
 mod trait_display {
@@ -257,8 +257,7 @@ mod traits_numerics {
                 Self::Joker(n)
             } else {
                 // Since n >= 0, this should always succeed
-                let pc = PlayingCard::try_from(n).unwrap();
-                Self::PlayingCard(pc)
+                PlayingCard::try_from(n).map(Self::PlayingCard).unwrap()
             }
         }
     }
@@ -296,7 +295,11 @@ mod traits_ord {
         fn cmp(&self, other: &Self) -> Ordering {
             match (self, other) {
                 (Self::PlayingCard(c1), Self::PlayingCard(c2)) => c1.cmp(c2),
-                (Self::Joker(_), Self::Joker(_)) => Ordering::Equal,
+                // Jokers should order themselves based on what deck they belong
+                // to.
+                (Self::Joker(x), Self::Joker(y)) => x.cmp(y),
+                // Jokers are the lowest possible card so any Playing Cards are
+                // better than them.
                 (Self::Joker(_), _) => Ordering::Less,
                 (_, Self::Joker(_)) => Ordering::Greater,
             }
