@@ -79,7 +79,6 @@ impl Ord for Pair {
         match (self.1.cmp(&other.1), self.is_proper(), other.is_proper()) {
             (Ordering::Equal, false, true) => Ordering::Less,
             (Ordering::Equal, true, false) => Ordering::Greater,
-            (Ordering::Equal, ..) => Ordering::Equal,
             (x, ..) => x,
         }
     }
