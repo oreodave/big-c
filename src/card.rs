@@ -75,6 +75,12 @@ impl PlayingCard {
         let suit = self.suit as i64;
         (rank * 4) + suit
     }
+
+    pub fn iter_all_deck(deck: usize) -> impl Iterator<Item = Self> {
+        let deck = deck as i64;
+        ((deck * 52)..((deck + 1) * 52))
+            .filter_map(|x| PlayingCard::try_from(x).ok())
+    }
 }
 
 impl Card {
