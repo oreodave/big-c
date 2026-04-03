@@ -40,6 +40,29 @@ impl Rank {
     pub fn ordinary_order(&self) -> i32 {
         ((*self as i32) + 2) % 13
     }
+
+    /** Generate an iterator over all ranks. */
+    pub fn iter_all() -> impl Iterator<Item = Rank> {
+        (0..13).filter_map(|x| Rank::try_from(x).ok())
+    }
+
+    /** Generate an iterator over all cards within a rank, ordered by Suit. */
+    pub fn cards(&self) -> impl Iterator<Item = Card> {
+        let n = *self as i64;
+        ((n * 4)..((n + 1) * 4)).map(Card::from)
+    }
+}
+
+impl Suit {
+    /** Generate an iterator over all suits. */
+    pub fn iter_all() -> impl Iterator<Item = Suit> {
+        (0..4).filter_map(|x| Suit::try_from(x).ok())
+    }
+
+    /** Generate an iterator over all cards within a suit, ordered by Suit. */
+    pub fn cards(&self) -> impl Iterator<Item = Card> {
+        Rank::iter_all().map(|rank| Card::make_playing_card(rank, *self))
+    }
 }
 
 impl PlayingCard {
