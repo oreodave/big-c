@@ -46,6 +46,8 @@ impl Display for Single {
 
 #[cfg(test)]
 mod tests {
+    use std::convert::identity;
+
     use super::*;
     use crate::{
         card::{make_decks, PlayingCard, Rank, Suit},
@@ -58,13 +60,8 @@ mod tests {
         assert!(Single::new(Card::make_joker()).is_none());
 
         let deck = make_decks(1);
-        let singles: Vec<Option<Single>> =
-            deck.iter().map(|&c| Single::new(c)).collect();
-        let valid_singles: Vec<Single> = singles
-            .iter()
-            .filter(|x| !x.is_none())
-            .map(|x| x.unwrap())
-            .collect();
+        let singles = deck.iter().map(|&c| Single::new(c)).filter_map(identity);
+        let valid_singles = singles.collect::<Vec<_>>();
 
         // TEST: Only two cards in a single deck aren't valid singles.
         assert!(valid_singles.len() == deck.len() - 2);
@@ -75,10 +72,11 @@ mod tests {
 
     #[test]
     fn footstool() {
-        let deck = make_decks(1);
-        let deck = &deck[2..]; // skip the jokers
-        let singles: Vec<Single> =
-            deck.iter().map(|&c| Single::new(c).unwrap()).collect();
+        // Make a deck with no jokers.
+        let singles = PlayingCard::iter_deck(0)
+            .map(Card::PlayingCard)
+            .filter_map(Single::new)
+            .collect::<Vec<_>>();
 
         singles.windows(3).for_each(|single_slice| {
             let (s1, s2, s3) =
@@ -103,16 +101,14 @@ mod tests {
         });
 
         for single in &singles {
-            let footstool_results: Vec<(Footstool, Footstool)> = singles
+            let footstool_results = singles
                 .iter()
                 .map(|&other_single| {
                     // TEST: All footstool results are non-reflexive.
                     test_non_reflexivity(single, &other_single)
                 })
-                .collect();
-
-            let footstool_results: Vec<Footstool> =
-                footstool_results.iter().map(|x| x.0).collect();
+                .map(|x| x.0)
+                .collect::<Vec<_>>();
 
             // TEST: A single is only full-footstooled by itself.
             let full_footstools = footstool_results
