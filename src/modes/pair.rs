@@ -101,29 +101,6 @@ mod tests {
     use super::*;
     use crate::card::{make_decks, Rank};
 
-    fn exhaustive_pairs() -> Vec<Pair> {
-        let deck = make_decks(1);
-        // Each rank (4 cards) can form:
-        // 1) 10 proper pairs: 4 self pairs + 6 pairs with different suits
-        // 2) 8 improper pairs: 2 jokers * 4 cards in a rank.
-        // => 18 pairs per rank.
-        let mut pairs: Vec<Pair> = Vec::with_capacity(13 * 18);
-
-        // This is technically a bunch of wasted effort, but for the sake of
-        // testing it's necessary.
-        for i in 0..deck.len() {
-            let c1 = deck[i];
-            for j in i..deck.len() {
-                let c2 = deck[j];
-                let pair = Pair::new(c1, c2);
-                if pair.is_some() {
-                    pairs.push(pair.unwrap());
-                }
-            }
-        }
-        pairs
-    }
-
     #[test]
     fn new() {
         // Two jokers can never be a pair.
@@ -177,6 +154,37 @@ mod tests {
                 }
             }
         }
+    }
+
+    // A rank has 4 cards.  There are a total of 10 proper pairs that can be
+    // made out of 4 cards.  With n jokers, add 4n improper pairs to the
+    // total count of pairs for a single rank.
+
+    fn exhaustive_pairs_deck() -> Vec<Pair> {
+        // A deck has 2 jokers => 18 pairs per rank.
+        let mut pairs = Vec::with_capacity(13 * 18);
+        for c1 in make_decks(1) {
+            for c2 in make_decks(2) {
+                if let Some(p) = Pair::new(c1, c2) {
+                    pairs.push(p);
+                }
+            }
+        }
+        pairs
+    }
+
+    fn exhaustive_pairs_rank(r: Rank) -> Vec<Pair> {
+        // We're only looking at one joker here, so 14 pairs in a rank.
+        let mut pairs = Vec::with_capacity(14);
+        for c1 in r.cards() {
+            for c2 in r.cards() {
+                pairs.push(Pair::new(c1, c2).unwrap());
+            }
+
+            pairs.push(Pair::new(c1, Card::make_joker()).unwrap());
+        }
+
+        pairs
     }
 
     #[test]
