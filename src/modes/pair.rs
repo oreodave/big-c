@@ -225,11 +225,23 @@ mod tests {
 
     #[test]
     fn footstool() {
-        todo!("Implement tests for Pair footstools");
-    }
+        let pairs = exhaustive_pairs_deck();
+        for p1 in &pairs {
+            for p2 in &pairs {
+                let (p1_on_p2, p2_on_p1) = test_non_reflexivity(p1, p2);
+                let (hc1_on_hc2, hc2_on_hc1) = {
+                    let [high_card_1, high_card_2] =
+                        [p1.1, p2.1].map(Single::new).map(|x| {
+                            assert!(x.is_some());
+                            x.unwrap()
+                        });
+                    test_non_reflexivity(&high_card_1, &high_card_2)
+                };
 
-    #[test]
-    fn footstool_deck_irrelevance() {
-        todo!("Implement tests for Pair footstool deck irrelevance");
+                // TEST: We expect pair footstools to mirror footstool rules of
+                // Singles on the high card.
+                assert!(p1_on_p2 == hc1_on_hc2 && p2_on_p1 == hc2_on_hc1);
+            }
+        }
     }
 }
