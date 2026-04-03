@@ -47,8 +47,8 @@ impl Rank {
     }
 
     /** Generate an iterator over all cards within a rank, ordered by Suit. */
-    pub fn cards(&self) -> impl Iterator<Item = Card> {
-        let n = *self as i64;
+    pub fn cards(self) -> impl Iterator<Item = Card> {
+        let n = self as i64;
         ((n * 4)..((n + 1) * 4)).map(Card::from)
     }
 }
@@ -60,8 +60,8 @@ impl Suit {
     }
 
     /** Generate an iterator over all cards within a suit, ordered by Suit. */
-    pub fn cards(&self) -> impl Iterator<Item = Card> {
-        Rank::iter_all().map(|rank| Card::make_playing_card(rank, *self))
+    pub fn cards(self) -> impl Iterator<Item = Card> {
+        Rank::iter_all().map(move |rank| Card::make_playing_card(rank, self))
     }
 }
 
