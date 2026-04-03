@@ -2,6 +2,7 @@
 #![cfg_attr(not(clippy), allow(dead_code))]
 
 mod card;
+mod game;
 mod helper;
 mod modes;
 
