@@ -46,8 +46,6 @@ impl Display for Single {
 
 #[cfg(test)]
 mod tests {
-    use std::convert::identity;
-
     use super::*;
     use crate::{
         card::{make_decks, PlayingCard, Rank, Suit},
@@ -59,9 +57,9 @@ mod tests {
         // TEST: Jokers are not valid singles.
         assert!(Single::new(Card::make_joker()).is_none());
 
-        let deck = make_decks(1);
-        let singles = deck.iter().map(|&c| Single::new(c)).filter_map(identity);
-        let valid_singles = singles.collect::<Vec<_>>();
+        let valid_singles =
+            make_decks(1).filter_map(Single::new).collect::<Vec<_>>();
+        let deck = make_decks(1).collect::<Vec<_>>();
 
         // TEST: Only two cards in a single deck aren't valid singles.
         assert!(valid_singles.len() == deck.len() - 2);
