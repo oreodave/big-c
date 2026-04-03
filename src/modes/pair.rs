@@ -100,7 +100,7 @@ impl PartialOrd for Pair {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::card::make_decks;
+    use crate::card::{make_decks, Rank};
 
     fn exhaustive_pairs() -> Vec<Pair> {
         let deck = make_decks(1);
@@ -130,15 +130,9 @@ mod tests {
         // Two jokers can never be a pair.
         assert_eq!(Pair::new(Card::make_joker(), Card::make_joker()), None);
 
-        for rank in 0..13 {
-            // Vector of cards of a rank: size 4.
-            let rank_cards: Vec<Card> = ((rank * 4)..((rank + 1) * 4))
-                .into_iter()
-                .map(Card::from)
-                .collect();
-
-            for &c1 in &rank_cards {
-                for &c2 in &rank_cards {
+        for rank in Rank::iter_all() {
+            for c1 in rank.cards() {
+                for c2 in rank.cards() {
                     // TEST: Pairs are composed of two similar rank cards.
                     let pair = {
                         let pair = Pair::new(c1, c2);
@@ -170,21 +164,15 @@ mod tests {
                 assert!(matches!(pair.1, Card::PlayingCard(_)));
             }
 
-            for opposing_rank in 0..13 {
+            for opposing_rank in Rank::iter_all() {
                 if rank == opposing_rank {
                     continue;
                 }
 
                 assert!(rank != opposing_rank);
-                let opposing_rank_cards: Vec<Card> = ((opposing_rank * 4)
-                    ..((opposing_rank + 1) * 4))
-                    .into_iter()
-                    .map(Card::from)
-                    .collect();
-
                 // TEST: Two playing cards of differing rank can never be a pair.
-                for &r1 in &rank_cards {
-                    for &r2 in &opposing_rank_cards {
+                for r1 in rank.cards() {
+                    for r2 in opposing_rank.cards() {
                         assert_eq!(Pair::new(r1, r2), None);
                     }
                 }
