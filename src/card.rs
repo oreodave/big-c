@@ -55,7 +55,11 @@ impl PlayingCard {
 }
 
 impl Card {
-    pub fn new(rank: Rank, suit: Suit) -> Self {
+    pub fn make_joker() -> Self {
+        Self::Joker(-1)
+    }
+
+    pub fn make_playing_card(rank: Rank, suit: Suit) -> Self {
         Self::PlayingCard(PlayingCard::new(0, rank, suit))
     }
 
