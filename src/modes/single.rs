@@ -49,7 +49,7 @@ mod tests {
     use super::*;
     use crate::{
         card::{make_decks, PlayingCard, Rank, Suit},
-        modes::tests::test_non_reflexivity,
+        modes::tests::test_footstool_non_reflexivity,
     };
 
     #[test]
@@ -84,9 +84,9 @@ mod tests {
             assert!(s1.footstool(&s1) == Footstool::Full);
 
             // TEST: non-reflexivity of footstool on neighbours.
-            let (_, s2_on_s1) = test_non_reflexivity(&s1, &s2);
-            let (_, s3_on_s2) = test_non_reflexivity(&s2, &s3);
-            let (s1_on_s3, s3_on_s1) = test_non_reflexivity(&s1, &s3);
+            let (_, s2_on_s1) = test_footstool_non_reflexivity(&s1, &s2);
+            let (_, s3_on_s2) = test_footstool_non_reflexivity(&s2, &s3);
+            let (s1_on_s3, s3_on_s1) = test_footstool_non_reflexivity(&s1, &s3);
 
             // TEST: s2 is half-footstooled by s3, and s1 is half footstooled by
             // s2.
@@ -103,7 +103,7 @@ mod tests {
                 .iter()
                 .map(|&other_single| {
                     // TEST: All footstool results are non-reflexive.
-                    test_non_reflexivity(single, &other_single)
+                    test_footstool_non_reflexivity(single, &other_single)
                 })
                 .map(|x| x.0)
                 .collect::<Vec<_>>();
@@ -154,22 +154,23 @@ mod tests {
 
             // TEST: a single may be footstooled by a single from another deck with
             // the same rank and suit.
-            let (piv_on_piv_copy, _) = test_non_reflexivity(&pivot, &piv_copy);
+            let (piv_on_piv_copy, _) =
+                test_footstool_non_reflexivity(&pivot, &piv_copy);
             assert!(piv_on_piv_copy == Footstool::Full);
 
             // TEST: A single may be half footstooled by singles from another deck.
             let (piv_on_piv_before, _) =
-                test_non_reflexivity(&pivot, &piv_before);
+                test_footstool_non_reflexivity(&pivot, &piv_before);
             assert!(piv_on_piv_before == Footstool::Half);
 
             let (_, piv_after_on_piv) =
-                test_non_reflexivity(&pivot, &piv_after);
+                test_footstool_non_reflexivity(&pivot, &piv_after);
             assert!(piv_after_on_piv == Footstool::Half);
 
             // TEST: A single is still not footstooled by singles from other
             // decks that aren't adjacent.
             let (piv_on_piv_way_after, _) =
-                test_non_reflexivity(&pivot, &piv_way_after);
+                test_footstool_non_reflexivity(&pivot, &piv_way_after);
             assert!(piv_on_piv_way_after == Footstool::None);
         }
     }
