@@ -206,23 +206,12 @@ mod tests {
     #[test]
     fn ordering() {
         fn expected_ordering_relation(p1: &Pair, p2: &Pair) -> bool {
-            match (p1.cmp(p2), p1.1.cmp(&p2.1)) {
+            match (p1.cmp(p2), p1.1.cmp(&p2.1), p1.0.cmp(&p2.0)) {
                 // For any two pairs, we expect the high cards to dictate the
-                // ordering of the pairs - the lower card should be irrelevant.
-                (x, y) if x == y => true,
-
-                // The only instances where the high card may not dictate card
-                // ordering is if both pairs have equivalent high cards and
-                // exclusively one of the pairs is improper - pairs that are
-                // improper should be sorted less than the proper one.
-                (Ordering::Less, Ordering::Equal) => {
-                    // p1 is improper, p2 is proper => p1 < p2
-                    p1.is_improper() && p2.is_proper()
-                }
-                (Ordering::Greater, Ordering::Equal) => {
-                    // p2 is improper, p1 is proper => p1 > p2
-                    p2.is_improper() && p1.is_proper()
-                }
+                // ordering of the pairs first.  The low card only matters if
+                // the high cards are equivalent.
+                (x, Ordering::Equal, z) if x == z => true,
+                (x, y, _) if x == y => true,
                 _ => false,
             }
         }
