@@ -14,7 +14,7 @@ impl Pair {
     first member of the pair.  In other words, Pair::1 will always be a valid
     playing card.
      */
-    fn new(c1: Card, c2: Card) -> Option<Pair> {
+    pub fn new(c1: Card, c2: Card) -> Option<Pair> {
         // Order the cards.  This means if xor(c1 is joker, c2 is joker) c1 will
         // be that joker.
         let [c1, c2] = ordered([c1, c2]);
@@ -102,7 +102,7 @@ mod tests {
     use super::*;
     use crate::{
         card::{make_decks, Rank},
-        modes::tests::test_footstool_non_reflexivity,
+        modes::tests::test_footstool,
     };
 
     #[test]
@@ -245,17 +245,8 @@ mod tests {
         exhaustive_pairs_deck()
             .flat_map(|p1| exhaustive_pairs_deck().map(move |p2| (p1, p2)))
             .for_each(|(p1, p2)| {
-                let (p1_on_p2, p2_on_p1) =
-                    test_footstool_non_reflexivity(&p1, &p2);
-                let (hc1_on_hc2, hc2_on_hc1) = {
-                    let high_card_1 = Single::new(p1.1).unwrap();
-                    let high_card_2 = Single::new(p2.1).unwrap();
-                    test_footstool_non_reflexivity(&high_card_1, &high_card_2)
-                };
-
-                // TEST: We expect pair footstools to mirror footstool rules of
-                // Singles on the high card.
-                assert!(p1_on_p2 == hc1_on_hc2 && p2_on_p1 == hc2_on_hc1);
+                // TEST: Expected footstool condition
+                test_footstool(&p1, &p2);
             });
     }
 }
