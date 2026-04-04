@@ -69,18 +69,15 @@ use std::cmp::Ordering;
 impl Ord for Pair {
     fn cmp(&self, other: &Self) -> Ordering {
         /*
-        Comparison is slightly complicated by the inclusion of wild cards.
-        Rules are as follows:
-        1) Two proper/improper pairs that have equivalent high cards are
-           equivalent.
-        2) Two pairs with equivalent high cards but only one is proper; the pair
-           that is proper wins.
-        3) Otherwise, comparison between high cards is the ordering.
+        Comparison is trivial: compare the top most card first.  If they're
+        equivalent, then compare the last card to get a full ordering.
+        Otherwise, use the high card comparison.
         */
-        match (self.1.cmp(&other.1), self.is_proper(), other.is_proper()) {
-            (Ordering::Equal, false, true) => Ordering::Less,
-            (Ordering::Equal, true, false) => Ordering::Greater,
-            (x, ..) => x,
+        let high_card_comp = self.1.cmp(&other.1);
+        if high_card_comp == Ordering::Equal {
+            self.0.cmp(&other.0)
+        } else {
+            high_card_comp
         }
     }
 }
