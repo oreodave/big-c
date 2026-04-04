@@ -30,7 +30,7 @@ impl Hand for Single {
         // Trivial implementation
         if self_abs == other_abs {
             Footstool::Full
-        } else if self_abs == other_abs + 1 {
+        } else if self_abs == (other_abs + 1) % 52 {
             Footstool::Half
         } else {
             Footstool::None
