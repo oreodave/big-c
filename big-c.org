@@ -1,6 +1,6 @@
 #+filetags: big-c
 
-* TODO Refactor Cards :refactor_cards:
+* WIP Refactor Cards :refactor_cards:
 It's really bloated - should probably be a subcrate.
 ** TODO Make subcrate
 ** TODO Testing
