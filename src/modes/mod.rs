@@ -25,33 +25,32 @@ pub trait Hand: Ord {
 
 #[cfg(test)]
 mod tests {
-    use std::fmt::Display;
+    use std::fmt::{Debug, Display};
 
     use super::*;
 
     /** Given two hands, assert that applying a footstool both ways fits a
-    recognised pattern.  Return the results of the two footstool checks (x on y,
-    y on x).
+    recognised basic pattern for footstools (in a generic sense).  Return the
+    results of the two footstool checks (x on y, y on x).
+
+    Obviously may panic.
      */
     pub fn test_footstool<T>(x: &T, y: &T) -> (Footstool, Footstool)
     where
-        T: Hand + Copy + Display,
+        T: Hand + Copy + Display + Debug,
     {
         let res1 = x.footstool(y);
         let res2 = y.footstool(x);
         assert!(
             match (res1, res2) {
-                // Default patterns we'd expect
-                (Footstool::Half, Footstool::None)
-                | (Footstool::None, Footstool::Half)
-                | (Footstool::None, Footstool::None)
-                    => true,
-
-                // Patterns that require an exact examination to be certain
+                (Footstool::None, Footstool::None) => true,
+                (Footstool::Half, Footstool::None) => x > y,
+                (Footstool::None, Footstool::Half) => y > x,
                 (Footstool::Full, Footstool::Full) => x == y,
-                _ => true,
+                _ => false,
             },
-            "Expected footstool on {}, {} ({:?}, {:?}) to match a recognised pattern",
+            "Expected footstool on {}, {} ({:?}, {:?}) to match a recognised
+            pattern",
             x,
             y,
             res1,
