@@ -1,9 +1,16 @@
-* TODO Implement player and game structure
+#+filetags: big-c
+
+* TODO Refactor Cards :refactor_cards:
+It's really bloated - should probably be a subcrate.
+** TODO Make subcrate
+** TODO Testing
+* Backlog :backlog:
+** TODO Implement player and game structure
 A game should have a table of players, a deck of unplayed cards, a
 deck of played cards, and some metadata for the current round.  The
 table of players should associate each player with a unique ID.  It
 should also track the cards in each players hand.
-* TODO Implement playing system
+** TODO Implement playing system
 Once an order has been picked, the first player becomes the "round
 chooser".  Game play goes like so:
 1) Round chooser plays a hand of any round type they wish, which
@@ -16,16 +23,16 @@ chooser".  Game play goes like so:
      wins
    - All but one player skips, in which case that player becomes the
      round chooser.  Go to (1).
-** TODO Classify round types
+*** TODO Classify round types
 Each round type has a definition of what a valid "hand" is, and how
 ranking works in it.  So it's important to clarify this before
 anything else.
-*** TODO Classify hand sizes
+**** TODO Classify hand sizes
 - 1: singles
 - 2: pairs
 - 3: triples
 - 5: poker hands
-*** TODO Classify hand ranking
+**** TODO Classify hand ranking
 Hand ranking only applies for hands of the same round type - you
 wouldn't compare a pair to a straight.
 
@@ -51,7 +58,7 @@ wouldn't compare a pair to a straight.
     - Four kind/Five Kind: At least one of the four/five kind must
       have a higher rank (4D < 4S).
     - Straight Flush: Same rules as Flush/Straight.
-** TODO Jokers
+*** TODO Jokers
 Jokers act as filler cards to allow certain hands.  In classification,
 the strongest hand possible is assumed based on the cards available -
 players have no influence on how their hand is classified (i.e. [4D,
@@ -69,7 +76,7 @@ ordering.  Their use in play is dependent on the round type:
   - 3 jokers: five of a kind if other two cards are a pair, otherwise
     four of a kind against the highest ranked card.
   - 1/2 jokers: much more dependent on the other cards present.
-** TODO Footstools
+*** TODO Footstools
 Footstools are a core mechanic of Big-C.  The basic idea is this: if
 your hand is 1 step higher or /exactly/ the same as the previous hand,
 the previous player is penalised for it.  It is called a footstool
@@ -108,7 +115,7 @@ all that matters in any half-footstool, the joker can never influence
 this.  Also note that a hand can only be played if it's better than
 the previous one, so that should exclude a bunch of hands from being
 footstool-ing.
-* TODO Implement order of play
+** TODO Implement order of play
 There is a minigame required to determine order of play in big-c.  The
 actual routine is a bit complex to go over, given the possible scale
 of the game:
@@ -125,11 +132,11 @@ of the game:
 
 What makes this interesting is that players get to CHOOSE what cards
 they present.  All sorts of mind games can be played here.
-* TODO Write a basic CLI version
+** TODO Write a basic CLI version
 MVP goals:
 - 2 player
 - Each player takes turns playing the game (ensure we add a stage to
   allow handover, clearing screen before and after)
 - Ensure hands are valid, and when a round is won play is passed over
   appropriately
-* TODO Write webserver
+** TODO Write webserver
