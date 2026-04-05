@@ -42,6 +42,14 @@ impl Display for Single {
     }
 }
 
+use std::hash::{Hash, Hasher};
+
+impl Hash for Single {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        self.0.hash(state);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use std::collections::{HashMap, HashSet};
