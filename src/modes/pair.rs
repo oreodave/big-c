@@ -97,10 +97,7 @@ impl PartialOrd for Pair {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{
-        card::{make_decks, Rank},
-        modes::tests::test_footstool,
-    };
+    use crate::{card::Rank, modes::tests::test_footstool};
 
     #[test]
     fn new() {
@@ -137,7 +134,7 @@ mod tests {
             });
 
         // TEST: Improper pair tests.
-        PlayingCard::iter_deck(1)
+        PlayingCard::iter_all(1)
             .map(Card::PlayingCard)
             .map(|c1| {
                 // TEST: Any card with one joker can be made into a valid pair.
@@ -169,7 +166,7 @@ mod tests {
             });
 
         // TEST: Proper pair tests
-        PlayingCard::iter_deck(1)
+        PlayingCard::iter_all(1)
             .map(Card::PlayingCard)
             // Flat Map every card (c1) into combinations (c1, card of same rank as c1)
             .flat_map(|c1| c1.rank().unwrap().cards().map(move |c2| (c1, c2)))
@@ -198,8 +195,8 @@ mod tests {
 
     /** Create an exhaustive set of pairs for one deck. */
     fn exhaustive_pairs_deck() -> impl Iterator<Item = Pair> {
-        make_decks(1).flat_map(|c1| {
-            make_decks(1).filter_map(move |c2| Pair::new(c1, c2))
+        Card::iter_all(1).flat_map(|c1| {
+            Card::iter_all(1).filter_map(move |c2| Pair::new(c1, c2))
         })
     }
 
