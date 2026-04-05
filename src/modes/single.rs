@@ -218,18 +218,30 @@ mod tests {
     fn footstool_deck_irrelevance() {
         // For a fixed Single, comparing to another deck's cards doesn't change
         // if it gets footstooled.
-        let piv_card = Card::make_playing_card(Rank::Three, Suit::Club);
-        let pivot = Single::new(piv_card).unwrap();
+        let pivot = PlayingCard::new(0, Rank::Three, Suit::Club);
 
         for i in 1..10 {
-            let piv_copy = Single(Card::PlayingCard(PlayingCard {
-                deck: i,
-                ..piv_card.playing_card().unwrap()
-            }));
-
-            let piv_before = Single(Card::from(i64::from(piv_copy.0) - 1));
-            let piv_after = Single(Card::from(i64::from(piv_copy.0) + 1));
-            let piv_way_after = Single(Card::from(i64::from(piv_copy.0) + 2));
+            let piv_copy = PlayingCard::new(i, pivot.rank, pivot.suit);
+            let piv_before = piv_copy
+                .prev()
+                .and_then(|x| Some(Card::PlayingCard(x)))
+                .and_then(|x| Some(Single(x)))
+                .unwrap();
+            let piv_after = piv_copy
+                .next()
+                .and_then(|x| Some(Card::PlayingCard(x)))
+                .and_then(|x| Some(Single(x)))
+                .unwrap();
+            let piv_way_after = piv_copy
+                .next()
+                .and_then(|x| x.next())
+                .and_then(|x| Some(Card::PlayingCard(x)))
+                .and_then(|x| Some(Single(x)))
+                .unwrap();
+            let piv_copy = Card::PlayingCard(piv_copy);
+            let piv_copy = Single(piv_copy);
+            let pivot = Card::PlayingCard(pivot);
+            let pivot = Single(pivot);
 
             // TEST: a single may be footstooled by a single from another deck
             // with the same rank and suit.
