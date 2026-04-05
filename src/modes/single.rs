@@ -1,7 +1,7 @@
 use crate::card::Card;
 
 #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Copy, Clone)]
-pub struct Single(pub Card);
+pub struct Single(Card);
 
 impl Single {
     /** Create a new single from a card `c`.  Will return None if a Single
