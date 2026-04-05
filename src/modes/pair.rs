@@ -4,7 +4,7 @@ use crate::{
 };
 
 #[derive(Eq, Debug, Copy, Clone)]
-pub struct Pair(pub Card, pub Card);
+pub struct Pair(Card, Card);
 
 impl Pair {
     /** Create a new pair utilising two cards, `c1` and `c2`.  Will return None
