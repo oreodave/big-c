@@ -83,6 +83,36 @@ impl PlayingCard {
         ((deck * 52)..((deck + 1) * 52))
             .filter_map(|x| PlayingCard::try_from(x).ok())
     }
+
+    /** Return the Playing Card after the current one in terms of ordering.
+
+    Returns None if self is 2 of Spades (the highest possible Playing Card).
+    Respects deck of self. */
+    pub fn next(&self) -> Option<PlayingCard> {
+        match *self {
+            PlayingCard {
+                rank: Rank::Two,
+                suit: Suit::Spade,
+                ..
+            } => None,
+            card => PlayingCard::try_from(i64::from(card) + 1).ok(),
+        }
+    }
+
+    /** Return the Playing Card before the current one in terms of ordering.
+
+    Returns None if self is 3 of Diamonds (the lowest possible Playing Card).
+    Respects deck of self. */
+    pub fn prev(&self) -> Option<PlayingCard> {
+        match *self {
+            PlayingCard {
+                rank: Rank::Three,
+                suit: Suit::Diamond,
+                ..
+            } => None,
+            card => PlayingCard::try_from(i64::from(card) - 1).ok(),
+        }
+    }
 }
 
 impl Card {
@@ -113,6 +143,26 @@ impl Card {
                 .flat_map(PlayingCard::iter_all)
                 .map(Card::PlayingCard),
         )
+    }
+
+    /** Return the Card after the current one in terms of ordering.
+
+    Returns None if self is a joker, or based on PlayingCard::next.*/
+    pub fn next(&self) -> Option<Card> {
+        match *self {
+            Card::Joker(_) => None,
+            Card::PlayingCard(card) => card.next().map(Card::PlayingCard),
+        }
+    }
+
+    /** Return the Card before the current one in terms of ordering.
+
+    Returns None if self is a joker, or based on PlayingCard::prev.*/
+    pub fn prev(&self) -> Option<Card> {
+        match *self {
+            Card::Joker(_) => None,
+            Card::PlayingCard(card) => card.prev().map(Card::PlayingCard),
+        }
     }
 
     pub fn is_joker(&self) -> bool {
