@@ -48,11 +48,26 @@ impl Hand for Pair {
         matches!(self.0, Card::PlayingCard(_))
     }
 
-    fn footstool(&self, other: &Self) -> Footstool {
-        // A pair footstools the other <=> the highest cards of both footstool
-        // each other => we can rely on the footstool implementation of Single
-        // for this.
-        Single(self.1).footstool(&Single(other.1))
+    fn footstool(&self, b: &Self) -> Footstool {
+        match self.cmp(b) {
+            // There is no footstool if self is beaten by other.
+            Ordering::Less => Footstool::None,
+            // We can only full footstool if we have equivalent pairs.
+            Ordering::Equal => Footstool::Full,
+            // Half footstools can proc if self.1 footstools other.1 (full or
+            // half).
+            Ordering::Greater => {
+                // By construction, Pair::1 is always a playing card so we may
+                // safely unwrap here.
+                let s1 = Single::new(self.1).unwrap();
+                let s2 = Single::new(b.1).unwrap();
+                if s1.footstool(&s2) != Footstool::None {
+                    Footstool::Half
+                } else {
+                    Footstool::None
+                }
+            }
+        }
     }
 }
 
