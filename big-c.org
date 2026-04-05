@@ -2,7 +2,7 @@
 
 * WIP Refactor Cards :refactor_cards:
 It's really bloated - should probably be a subcrate.
-** TODO Make subcrate
+** WIP Split into module
 ** TODO Testing
 * Backlog :backlog:
 ** TODO Implement player and game structure
