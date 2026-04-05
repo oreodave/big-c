@@ -42,8 +42,8 @@ impl Rank {
     }
 
     /** Generate an iterator over all ranks. */
-    pub fn iter_all() -> impl Iterator<Item = Rank> {
-        (0..13).filter_map(|x| Rank::try_from(x).ok())
+    pub fn iter_all() -> impl ExactSizeIterator<Item = Rank> {
+        (0i32..13).map(|n| Rank::try_from(n as i64).unwrap())
     }
 
     /** Generate an iterator over all cards within a rank, ordered by Suit. */
@@ -76,7 +76,9 @@ impl PlayingCard {
         (rank * 4) + suit
     }
 
-    pub fn iter_deck(deck: usize) -> impl Iterator<Item = Self> {
+    /** Generate an iterator over all Playing Cards in a fixed deck.  By
+    construction this is in ascending order. */
+    pub fn iter_all(deck: usize) -> impl Iterator<Item = Self> {
         let deck = deck as i64;
         ((deck * 52)..((deck + 1) * 52))
             .filter_map(|x| PlayingCard::try_from(x).ok())
@@ -97,6 +99,20 @@ impl Card {
             Self::Joker(x) => x,
             Self::PlayingCard(card) => card.abs(),
         }
+    }
+
+    /** Generate an iterator over a `n` decks of Cards.  Each deck is
+    concatenated together.  By construction, each "deck" of the iterator is in
+    ascending order.
+
+    Note that each deck gets two jokers.
+     */
+    pub fn iter_all(n: usize) -> impl Iterator<Item = Card> {
+        (-((n as i64) * 2)..0).map(Card::from).chain(
+            (0..n)
+                .flat_map(PlayingCard::iter_all)
+                .map(Card::PlayingCard),
+        )
     }
 
     pub fn is_joker(&self) -> bool {
@@ -124,16 +140,6 @@ impl Card {
 pub fn all_same_rank(cards: &[PlayingCard]) -> bool {
     let rank = cards[0].rank;
     cards[1..].iter().all(|card| rank == card.rank)
-}
-
-/** Generate a vector of cards representing the concatenation of
-`number_of_decks` decks of playing cards put together.
-
-Note that each deck gets two jokers - this is added to the overall vector.
- */
-pub fn make_decks(number_of_decks: usize) -> impl Iterator<Item = Card> {
-    let number_of_decks: i64 = number_of_decks.try_into().unwrap();
-    (-(number_of_decks * 2)..(52 * number_of_decks)).map(Card::from)
 }
 
 mod trait_display {
@@ -299,9 +305,8 @@ mod traits_ord {
         fn cmp(&self, other: &Self) -> Ordering {
             match (self, other) {
                 (Self::PlayingCard(c1), Self::PlayingCard(c2)) => c1.cmp(c2),
-                // Jokers should order themselves based on what deck they belong
-                // to.
-                (Self::Joker(x), Self::Joker(y)) => x.cmp(y),
+                // Jokers should not really care about internal ordering.
+                (Self::Joker(_), Self::Joker(_)) => Ordering::Equal,
                 // Jokers are the lowest possible card so any Playing Cards are
                 // better than them.
                 (Self::Joker(_), _) => Ordering::Less,
