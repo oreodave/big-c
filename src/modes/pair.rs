@@ -109,6 +109,15 @@ impl PartialOrd for Pair {
     }
 }
 
+use std::hash::{Hash, Hasher};
+
+impl Hash for Pair {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        // Pairs are just tuples lol.
+        (self.0, self.1).hash(state);
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
