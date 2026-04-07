@@ -8,8 +8,9 @@ mod ord;
 #[cfg(test)]
 mod tests;
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Copy, Clone)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Default, Debug, Copy, Clone)]
 pub enum Rank {
+    #[default]
     Three = 0,
     Four,
     Five,
@@ -25,8 +26,9 @@ pub enum Rank {
     Two,
 }
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Copy, Clone)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Default, Debug, Copy, Clone)]
 pub enum Suit {
+    #[default]
     Diamond = 0,
     Club,
     Heart,
