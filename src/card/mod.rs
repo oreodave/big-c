@@ -1,3 +1,4 @@
+mod default;
 mod display;
 mod hash;
 mod impls;
@@ -40,11 +41,4 @@ pub struct PlayingCard {
 pub enum Card {
     Joker(i64),
     PlayingCard(PlayingCard),
-}
-
-/** Given a sequence of Playing Cards, check if they are all of the same rank.
- */
-pub fn all_same_rank(cards: &[PlayingCard]) -> bool {
-    let rank = cards[0].rank;
-    cards[1..].iter().all(|card| rank == card.rank)
 }
