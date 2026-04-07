@@ -5,6 +5,9 @@ mod impls;
 mod numerics;
 mod ord;
 
+#[cfg(test)]
+mod tests;
+
 #[derive(PartialEq, Eq, PartialOrd, Ord, Debug, Copy, Clone)]
 pub enum Rank {
     Three = 0,
