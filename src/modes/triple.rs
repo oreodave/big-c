@@ -68,3 +68,32 @@ impl PartialOrd for Triple {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn new() {
+        let joker = Card::make_joker();
+
+        // TEST: Cannot make a triple out of three jokers
+        assert_eq!(
+            Triple::new(joker, joker, joker),
+            None,
+            "Expected triple of 3 jokers to be None"
+        );
+
+        // TEST: Any card with two jokers is a triple
+        for card in PlayingCard::iter_all(0).map(Card::PlayingCard) {
+            let trip = Triple::new(card, joker, joker);
+            assert!(
+                trip.is_some(),
+                "Expected ({card}, {joker}, {joker}) to make a triple"
+            );
+            let trip = trip.unwrap();
+            assert_eq!(trip.2, card, "Expected the highest card of the triple ({}) to be the sole PlayingCard ({card})", trip.2);
+        }
+
+        todo!("Finish implementing");
+    }
+}
