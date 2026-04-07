@@ -158,7 +158,7 @@ mod tests {
             });
 
         // TEST: Improper pair tests.
-        PlayingCard::iter_all(1)
+        PlayingCard::iter_all(0)
             .map(Card::PlayingCard)
             .map(|c1| {
                 // TEST: Any card with one joker can be made into a valid pair.
@@ -190,11 +190,13 @@ mod tests {
             });
 
         // TEST: Proper pair tests
-        PlayingCard::iter_all(1)
-            .map(Card::PlayingCard)
-            // Flat Map every card (c1) into combinations (c1, card of same rank as c1)
-            .flat_map(|c1| c1.rank().unwrap().cards().map(move |c2| (c1, c2)))
-            // Map every (c1, c2) into a pair
+        PlayingCard::iter_all(0)
+            // Flat Map every Playing Card (c1) into combinations (Card c1, Card
+            // of same rank as c1)
+            .flat_map(|c1| {
+                let card_c1 = Card::PlayingCard(c1);
+                c1.rank.cards().map(move |c2| (card_c1, c2))
+            })
             .map(|(c1, c2)| {
                 // TEST: Two cards of similar rank make a valid pair.
                 let pair = {
@@ -209,11 +211,19 @@ mod tests {
                 assert!(pair.is_proper(), "Expected {pair} to be proper.");
                 (c1, c2, pair)
             })
-            .for_each(|(c1, c2, pair)| {
+            .for_each(|(c1, c2, Pair(p1, p2))| {
                 // TEST: Pairs always sort their cards in strength.
-                let [b1, b2] = ordered([c1, c2]);
-                assert_eq!(pair.0, b1, "Expected {} to be {b1}", pair.0);
-                assert_eq!(pair.1, b2, "Expected {} to be {b2}", pair.1);
+                let pair_cards = [p1, p2];
+                let sorted_cards = ordered([c1, c2]);
+                assert_eq!(
+                    pair_cards,
+                    sorted_cards,
+                    "Expected ({}, {}) to be ({}, {})",
+                    pair_cards[0],
+                    pair_cards[1],
+                    sorted_cards[0],
+                    sorted_cards[1]
+                );
             });
     }
 
