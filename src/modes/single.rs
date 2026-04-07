@@ -11,7 +11,7 @@ impl Single {
     a Joker.
     */
     pub fn new(c: Card) -> Option<Single> {
-        (!c.is_joker()).then_some(Single(c))
+        matches!(c, Card::PlayingCard(_)).then_some(Single(c))
     }
 }
 
@@ -55,10 +55,7 @@ mod tests {
     use std::collections::{HashMap, HashSet};
 
     use super::*;
-    use crate::{
-        card::{PlayingCard, Rank, Suit},
-        modes::tests::test_footstool,
-    };
+    use crate::modes::tests::test_footstool;
 
     #[test]
     fn new() {
