@@ -1,6 +1,10 @@
 use crate::card::{Card, PlayingCard, Rank, Suit};
 use std::convert::TryFrom;
 
+/*
+(1) In C this would just be a straight cast lol.  At least T -> i64 is a normal
+cast.
+ */
 impl TryFrom<i64> for Rank {
     type Error = ();
 
@@ -24,6 +28,7 @@ impl TryFrom<i64> for Rank {
     }
 }
 
+// (1)
 impl TryFrom<i64> for Suit {
     type Error = ();
 
@@ -57,6 +62,15 @@ impl TryFrom<i64> for PlayingCard {
     }
 }
 
+impl From<PlayingCard> for i64 {
+    fn from(card: PlayingCard) -> i64 {
+        let deck = card.deck;
+        let rank = card.rank as i64;
+        let suit = card.suit as i64;
+        (deck * 52) + (rank * 4) + suit
+    }
+}
+
 impl From<i64> for Card {
     fn from(n: i64) -> Self {
         if n < 0 {
@@ -65,15 +79,6 @@ impl From<i64> for Card {
             // Since n >= 0, this should always succeed
             PlayingCard::try_from(n).map(Self::PlayingCard).unwrap()
         }
-    }
-}
-
-impl From<PlayingCard> for i64 {
-    fn from(card: PlayingCard) -> i64 {
-        let deck = card.deck;
-        let rank = card.rank as i64;
-        let suit = card.suit as i64;
-        (deck * 52) + (rank * 4) + suit
     }
 }
 
