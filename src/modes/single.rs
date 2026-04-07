@@ -213,67 +213,63 @@ mod tests {
 
     #[test]
     fn footstool_deck_irrelevance() {
-        // For a fixed Single, comparing to another deck's cards doesn't change
-        // if it gets footstooled.
-        let pivot = PlayingCard::new(0, Rank::Three, Suit::Club);
+        /*
+        A combinatorial check should be satisfactory here, given the extensive
+        testing of in-deck footstools from the previous test.  I'll create a
+        formula for the number of footstools we should expect to see from an
+        exhaustive checking of all Singles in N decks of cards where N > 0.
 
-        for i in 1..10 {
-            let piv_copy = PlayingCard::new(i, pivot.rank, pivot.suit);
-            let piv_before = piv_copy
-                .prev()
-                .and_then(|x| Some(Card::PlayingCard(x)))
-                .and_then(|x| Some(Single(x)))
-                .unwrap();
-            let piv_after = piv_copy
-                .next()
-                .and_then(|x| Some(Card::PlayingCard(x)))
-                .and_then(|x| Some(Single(x)))
-                .unwrap();
-            let piv_way_after = piv_copy
-                .next()
-                .and_then(|x| x.next())
-                .and_then(|x| Some(Card::PlayingCard(x)))
-                .and_then(|x| Some(Single(x)))
-                .unwrap();
-            let piv_copy = Card::PlayingCard(piv_copy);
-            let piv_copy = Single(piv_copy);
-            let pivot = Card::PlayingCard(pivot);
-            let pivot = Single(pivot);
+        For 1 deck there are 51 cards that have 1 half footstool and 1 full
+        footstool, and 1 card (3[D]) which has 1 full footstool.  This gave us
+        103 by (51 * 2) + 1.
 
-            // TEST: a single may be footstooled by a single from another deck
-            // with the same rank and suit.
-            let (piv_on_piv_copy, _) = test_footstool(&pivot, &piv_copy);
-            assert_eq!(
-                piv_on_piv_copy,
-                Footstool::Full,
-                "Expected {pivot}, {piv_copy} to full footstool."
-            );
+        For n decks, there will be (51*n) cards that have n choices for full
+        footstool and n choices for half footstool.  The remaing n cards will
+        all be 3[D], which means they will only get n full footstools.
 
-            // TEST: A single may be half footstooled by singles from another
-            // deck.
-            let (piv_on_piv_before, _) = test_footstool(&pivot, &piv_before);
-            assert_eq!(
-                piv_on_piv_before,
-                Footstool::Half,
-                "Expected {pivot}, {piv_before} to half footstool."
-            );
+        Another way to look at it is (52 * n * n) half footstools and (51 * n *
+        n) full footstools.  So (51 + 52) * (n * n) => 103n^2 footstools in n
+        decks.
+         */
 
-            let (_, piv_after_on_piv) = test_footstool(&pivot, &piv_after);
-            assert_eq!(
-                piv_after_on_piv,
-                Footstool::Half,
-                "Expected {pivot}, {piv_after} to half footstool."
-            );
+        const N_DECKS: usize = 10;
 
-            // TEST: A single is still not footstooled by singles from other
-            // decks that aren't adjacent.
-            let (piv_on_piv_way_after, _) =
-                test_footstool(&pivot, &piv_way_after);
-            assert_eq!(
-                piv_on_piv_way_after,
-                Footstool::None,
-                "Expected {pivot}, {piv_way_after} to not footstool."
-            );
+        // Function which maps a Footstool to a usize for use in array indexing.
+        fn footstool_to_numeral(f: Footstool) -> usize {
+            match f {
+                Footstool::None => 0,
+                Footstool::Half => 1,
+                Footstool::Full => 2,
+            }
         }
+
+        // Create a map that counts all the footstools possible between all
+        // cards.
+        let counter = {
+            let mut counter = [0; 3];
+            // Iterator over Cards from N_DECKS number of decks.
+            let cards = (0..((N_DECKS as i64) * 52)).map(Card::from);
+            cards
+                .clone()
+                .flat_map(move |c1| cards.clone().map(move |c2| (c1, c2)))
+                .for_each(|(c1, c2)| {
+                    let res = test_footstool(&Single(c1), &Single(c2)).0;
+                    let res = footstool_to_numeral(res);
+                    counter[res] += 1;
+                });
+
+            counter
+        };
+
+        let [_, half, full] = counter;
+
+        // TEST: There are 103n^2 footstool instances.
+        assert_eq!(103 * N_DECKS * N_DECKS, half + full);
+
+        // TEST: There are 51n^2 half footstool instances.
+        assert_eq!(51 * N_DECKS * N_DECKS, half);
+
+        // TEST: There are 52n^2 full footstool instances.
+        assert_eq!(52 * N_DECKS * N_DECKS, full);
     }
 }
