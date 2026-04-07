@@ -1,31 +1,36 @@
 use crate::card::{Card, PlayingCard, Rank, Suit};
 
-impl Rank {
-    pub fn ordinary_order(&self) -> i32 {
-        ((*self as i32) + 2) % 13
-    }
+/*
+Because of https://github.com/rust-lang/rust/pull/22299, Range<i64> is not an
+ExactSizeIterator => Map<Range<i64>> is not an ESI.  But Range<i32> is an ESI.
+*/
 
+impl Rank {
     /** Generate an iterator over all ranks. */
     pub fn iter_all() -> impl ExactSizeIterator<Item = Rank> {
-        (0i32..13).map(|n| Rank::try_from(n as i64).unwrap())
+        (0i32..13)
+            .map(|n| n as i64)
+            .map(|n| Rank::try_from(n).unwrap())
     }
 
-    /** Generate an iterator over all cards within a rank, ordered by Suit. */
-    pub fn cards(self) -> impl Iterator<Item = Card> {
-        let n = self as i64;
-        ((n * 4)..((n + 1) * 4)).map(Card::from)
+    /** Generate an iterator over all cards within a rank, ordered by Suit.  The
+    cards are all default initialised w.r.t. deck (0).*/
+    pub fn cards(self) -> impl ExactSizeIterator<Item = Card> {
+        let n = self as i32;
+        ((n * 4)..((n + 1) * 4)).map(|x| Card::from(x as i64))
     }
 }
 
 impl Suit {
     /** Generate an iterator over all suits. */
-    pub fn iter_all() -> impl Iterator<Item = Suit> {
-        (0..4).filter_map(|x| Suit::try_from(x).ok())
+    pub fn iter_all() -> impl ExactSizeIterator<Item = Suit> {
+        (0i32..4).map(|n| Suit::try_from(n as i64).unwrap())
     }
 
-    /** Generate an iterator over all cards within a suit, ordered by Suit. */
-    pub fn cards(self) -> impl Iterator<Item = Card> {
-        Rank::iter_all().map(move |rank| Card::make_playing_card(rank, self))
+    /** Generate an iterator over all cards within a suit, ordered by Rank.  The
+    cards are all default initialised in terms of deck (0).*/
+    pub fn cards(self) -> impl ExactSizeIterator<Item = Card> {
+        Rank::iter_all().map(move |rank| Card::make_playing_card(0, rank, self))
     }
 }
 
@@ -40,42 +45,13 @@ impl PlayingCard {
         (rank * 4) + suit
     }
 
-    /** Generate an iterator over all Playing Cards in a fixed deck.  By
+    /** Generate an iterator over all Playing Cards in the `nth` deck.  By
     construction this is in ascending order. */
-    pub fn iter_all(deck: usize) -> impl Iterator<Item = Self> {
-        let deck = deck as i64;
-        ((deck * 52)..((deck + 1) * 52))
-            .filter_map(|x| PlayingCard::try_from(x).ok())
-    }
-
-    /** Return the Playing Card after the current one in terms of ordering.
-
-    Returns None if self is 2 of Spades (the highest possible Playing Card).
-    Respects deck of self. */
-    pub fn next(&self) -> Option<PlayingCard> {
-        match *self {
-            PlayingCard {
-                rank: Rank::Two,
-                suit: Suit::Spade,
-                ..
-            } => None,
-            card => PlayingCard::try_from(i64::from(card) + 1).ok(),
-        }
-    }
-
-    /** Return the Playing Card before the current one in terms of ordering.
-
-    Returns None if self is 3 of Diamonds (the lowest possible Playing Card).
-    Respects deck of self. */
-    pub fn prev(&self) -> Option<PlayingCard> {
-        match *self {
-            PlayingCard {
-                rank: Rank::Three,
-                suit: Suit::Diamond,
-                ..
-            } => None,
-            card => PlayingCard::try_from(i64::from(card) - 1).ok(),
-        }
+    pub fn iter_all(n: i64) -> impl ExactSizeIterator<Item = Self> {
+        (0i32..52)
+            .map(|x| x as i64)
+            .map(move |x| x + (52 * n))
+            .map(|x| PlayingCard::try_from(x).unwrap())
     }
 }
 
@@ -84,8 +60,8 @@ impl Card {
         Self::Joker(-1)
     }
 
-    pub fn make_playing_card(rank: Rank, suit: Suit) -> Self {
-        Self::PlayingCard(PlayingCard::new(0, rank, suit))
+    pub fn make_playing_card(deck: i64, rank: Rank, suit: Suit) -> Self {
+        Self::PlayingCard(PlayingCard::new(deck, rank, suit))
     }
 
     pub fn deck_abs(&self) -> i64 {
@@ -101,50 +77,10 @@ impl Card {
 
     Note that each deck gets two jokers.
      */
-    pub fn iter_all(n: usize) -> impl Iterator<Item = Card> {
-        (-((n as i64) * 2)..0).map(Card::from).chain(
-            (0..n)
-                .flat_map(PlayingCard::iter_all)
-                .map(Card::PlayingCard),
-        )
-    }
-
-    /** Return the Card after the current one in terms of ordering.
-
-    Returns None if self is a joker, or based on PlayingCard::next.*/
-    pub fn next(&self) -> Option<Card> {
-        match *self {
-            Card::Joker(_) => None,
-            Card::PlayingCard(card) => card.next().map(Card::PlayingCard),
-        }
-    }
-
-    /** Return the Card before the current one in terms of ordering.
-
-    Returns None if self is a joker, or based on PlayingCard::prev.*/
-    pub fn prev(&self) -> Option<Card> {
-        match *self {
-            Card::Joker(_) => None,
-            Card::PlayingCard(card) => card.prev().map(Card::PlayingCard),
-        }
-    }
-
-    pub fn is_joker(&self) -> bool {
-        matches!(self, Self::Joker(_))
-    }
-
-    pub fn playing_card(&self) -> Option<PlayingCard> {
-        match *self {
-            Self::Joker(_) => None,
-            Self::PlayingCard(card) => Some(card),
-        }
-    }
-
-    pub fn rank(&self) -> Option<Rank> {
-        self.playing_card().map(|pc| pc.rank)
-    }
-
-    pub fn suit(&self) -> Option<Suit> {
-        self.playing_card().map(|pc| pc.suit)
+    pub fn iter_all(n: i64) -> impl Iterator<Item = Card> {
+        // NOTE: I cannot make this into an ExactSizeIterator using the i32
+        // trick.  Chain<ESI, ESI> is not an ESI, nor is FlatMap<T,U,T->U>
+        // (where T and U are ESIs).
+        (-(n * 2)..(52 * n)).map(Card::from)
     }
 }

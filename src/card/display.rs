@@ -1,6 +1,20 @@
 use crate::card::{Card, PlayingCard, Rank, Suit};
 use std::fmt::{Display, Formatter};
 
+/*
+In C this would look something like:
+switch (self) {
+  case RANK_JACK: fprintf(fp, "J"); break;
+  case RANK_QUEEN: fprintf(fp, "Q"); break;
+  case RANK_KING: fprintf(fp, "K"); break;
+  case RANK_ACE: fprintf(fp, "A"); break;
+  case RANK_TWO: fprintf(fp, "2"); break;
+  default: fprintf(fp, "%d", self + 3); break;
+}
+
+but I forgive Rust (for now 👀).
+ */
+
 impl Display for Rank {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         write!(
