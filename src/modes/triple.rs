@@ -7,7 +7,7 @@ use crate::{
 pub struct Triple(Card, Card, Card);
 
 impl Triple {
-    fn new(c1: Card, c2: Card, c3: Card) -> Option<Triple> {
+    pub fn new(c1: Card, c2: Card, c3: Card) -> Option<Triple> {
         let [c1, c2, c3] = ordered([c1, c2, c3]);
 
         match (c1, c2, c3) {
