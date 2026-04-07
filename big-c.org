@@ -1,8 +1,12 @@
 #+filetags: big-c
 
-* WIP Refactor Cards :refactor_cards:
-It's really bloated - should probably be a subcrate.
-** DONE Split into module
+* WIP triples :modes:feat_triples:
+Model the concept of a triple (three cards of similar rank).
+** WIP Triple::new
+** TODO Hand
+** TODO Display
+** TODO Ord
+** TODO Hash
 ** TODO Testing
 * Backlog :backlog:
 ** TODO Implement player and game structure
@@ -140,3 +144,8 @@ MVP goals:
 - Ensure hands are valid, and when a round is won play is passed over
   appropriately
 ** TODO Write webserver
+* Done
+** DONE Refactor Cards :refactor_cards:
+It's really bloated - should probably be a subcrate.
+*** DONE Split into module
+*** DONE Testing
