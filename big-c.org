@@ -5,7 +5,7 @@ Model the concept of a triple (three cards of similar rank).
 ** DONE Triple::new
 ** TODO Hand
 ** TODO Display
-** TODO Ord
+** DONE Ord
 ** TODO Hash
 ** TODO Testing
 * Backlog :backlog:
