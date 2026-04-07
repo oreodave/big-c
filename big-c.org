@@ -2,7 +2,7 @@
 
 * WIP triples :modes:feat_triples:
 Model the concept of a triple (three cards of similar rank).
-** WIP Triple::new
+** DONE Triple::new
 ** TODO Hand
 ** TODO Display
 ** TODO Ord
