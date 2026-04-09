@@ -64,6 +64,25 @@ impl Card {
         Self::PlayingCard(PlayingCard::new(deck, rank, suit))
     }
 
+    pub fn is_joker(&self) -> bool {
+        matches!(self, Card::Joker(_))
+    }
+
+    fn playing_card(&self) -> Option<PlayingCard> {
+        match self {
+            Card::Joker(_) => None,
+            Card::PlayingCard(pc) => Some(*pc),
+        }
+    }
+
+    pub fn rank(&self) -> Option<Rank> {
+        self.playing_card().and_then(|pc| Some(pc.rank))
+    }
+
+    pub fn suit(&self) -> Option<Suit> {
+        self.playing_card().and_then(|pc| Some(pc.suit))
+    }
+
     pub fn deck_abs(&self) -> i64 {
         match *self {
             Self::Joker(x) => x,
