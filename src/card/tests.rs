@@ -155,10 +155,7 @@ mod test_numerics {
             let card = Card::from(i);
 
             // TEST: Card::from(negative number) makes jokers.
-            assert!(
-                matches!(card, Card::Joker(_)),
-                "Expected Card::from({i}) makes jokers"
-            );
+            assert!(card.is_joker(), "Expected Card::from({i}) makes jokers");
         }
 
         // Card::from should defer to PlayingCard::try_from for positive
@@ -389,7 +386,7 @@ mod test_impls {
 
             // TEST: Expect there to be 2 jokers per deck of cards input.
             assert_eq!(
-                cards.iter().filter(|n| matches!(n, Card::Joker(_))).count(),
+                cards.iter().filter(|n| n.is_joker()).count(),
                 (2 * decks) as usize,
                 "Expected there to be {} jokers in Card::iter_all({})",
                 2 * decks,
