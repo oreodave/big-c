@@ -1,7 +1,4 @@
-use crate::{
-    card::{Card, PlayingCard},
-    helper::ordered,
-};
+use crate::{card::Card, helper::ordered};
 
 #[derive(Eq, Debug, Copy, Clone)]
 pub struct Pair(Card, Card);
@@ -19,23 +16,11 @@ impl Pair {
         // be that joker.
         let [c1, c2] = ordered([c1, c2]);
 
-        match (c1, c2) {
-            // Can't be a pair if you got two jokers homie.
-            (Card::Joker(_), Card::Joker(_)) => None,
-
-            // NOTE: c2 cannot be a joker because of prev condition.  If you've
-            // got a joker you're automatically a pair.
-            (Card::Joker(_), _) => Some(Pair(c1, c2)),
-
-            // NOTE: c1 and c2 cannot be jokers.  In which case, check their
-            // ranks are equivalent.
-            (
-                Card::PlayingCard(PlayingCard { rank: r1, .. }),
-                Card::PlayingCard(PlayingCard { rank: r2, .. }),
-            ) => (r1 == r2).then_some(Pair(c1, c2)),
-
-            // Not necessary since the previous patterns technically cover all
-            // cases.  But I love the compiler too much to tell them... 💔
+        match [c1, c2].map(|c| c.rank()) {
+            // A Joker and a PlayingCard
+            [None, Some(_)] => Some(Pair(c1, c2)),
+            // Two PlayingCards of the same rank
+            [Some(r1), Some(r2)] if r1 == r2 => Some(Pair(c1, c2)),
             _ => None,
         }
     }
@@ -88,12 +73,7 @@ impl Ord for Pair {
         equivalent, then compare the last card to get a full ordering.
         Otherwise, use the high card comparison.
         */
-        let high_card_comp = self.1.cmp(&other.1);
-        if high_card_comp == Ordering::Equal {
-            self.0.cmp(&other.0)
-        } else {
-            high_card_comp
-        }
+        self.1.cmp(&other.1).then_with(|| self.0.cmp(&other.0))
     }
 }
 
@@ -121,7 +101,10 @@ impl Hash for Pair {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{card::Rank, modes::tests::test_footstool};
+    use crate::{
+        card::{PlayingCard, Rank},
+        modes::tests::test_footstool,
+    };
 
     #[test]
     fn new() {
@@ -175,11 +158,7 @@ mod tests {
                 assert!(pair.is_improper(), "Expected {pair} to be improper");
 
                 // TEST: Improper pairs have a Joker in Pair::0.
-                assert!(
-                    matches!(pair.0, Card::Joker(_)),
-                    "Expected {} to be a joker",
-                    pair.0
-                );
+                assert!(pair.0.is_joker(), "Expected {} to be a joker", pair.0);
 
                 // TEST: Improper pairs have a playing card in Pair::1.
                 assert!(
