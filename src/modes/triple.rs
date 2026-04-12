@@ -1,20 +1,22 @@
 use crate::{card::Card, helper::ordered};
 
-#[derive(Eq, Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct Triple(Card, Card, Card);
 
 impl Triple {
+    /** Create a new triple utilising 3 cards: `c1`, `c2`, and `c3`.  Will
+    return None iff a Triple cannot be constructed out of those 3 cards.
+
+    NOTE: By construction, if a triple includes 1 Joker, then Triple::0 is that
+    joker.  If a triple includes 2 jokers, then Triple::0 and Triple::1 are
+    those jokers.  This means Triple::2 will always be a valid playing card.
+     */
     pub fn new(c1: Card, c2: Card, c3: Card) -> Option<Triple> {
         let [c1, c2, c3] = ordered([c1, c2, c3]);
 
         match [c1, c2, c3].map(|c| c.rank()) {
-            // Two Jokers + any PlayingCard
             [None, None, Some(_)] => Some(Triple(c1, c2, c3)),
-
-            // One Joker + two PlayingCards of the same rank
             [None, Some(r2), Some(r3)] if r2 == r3 => Some(Triple(c1, c2, c3)),
-
-            // Three PlayingCards of the same rank
             [Some(r1), Some(r2), Some(r3)] if r1 == r2 && r2 == r3 => {
                 Some(Triple(c1, c2, c3))
             }
@@ -22,47 +24,94 @@ impl Triple {
             _ => None,
         }
     }
+
+    fn count_jokers(&self) -> usize {
+        [self.0, self.1].iter().filter(|c| c.is_joker()).count()
+    }
 }
 
+use crate::helper::impl_cmp_eq_on_ord;
 use std::cmp::Ordering;
 
 impl Ord for Triple {
     fn cmp(&self, other: &Self) -> Ordering {
-        /*
-        Like pairs, we'll do a high-to-low comparison.  Since we're dealing with
-        3 items we'll need to compute potentially 3 comparisons.
-        */
+        // We count jokers as part of our ordering.
+        let self_jokers = self.count_jokers();
+        let other_jokers = other.count_jokers();
+
         let Triple(s1, s2, s3) = self;
         let Triple(o1, o2, o3) = other;
 
-        let cmp = s3.cmp(o3);
-        if cmp != Ordering::Equal {
-            cmp
-        } else {
-            let cmp = s2.cmp(o2);
-            if cmp != Ordering::Equal {
-                cmp
-            } else {
-                s1.cmp(o1)
+        // The most critical part of ordering is top card comparison
+        s3.rank()
+            .cmp(&o3.rank())
+            // if we have 2 triples, both with the same ranked high card, and
+            // one has 2 jokers while the other doesn't => the 2 joker triple is
+            // worse.
+            .then_with(|| match (self_jokers, other_jokers) {
+                (2, x) if x < 2 => Ordering::Less,
+                (x, 2) if x < 2 => Ordering::Greater,
+                _ => Ordering::Equal,
+            })
+            // then compare by the highest to lowest cards
+            .then_with(|| s3.suit().cmp(&o3.suit()))
+            .then_with(|| s2.cmp(o2))
+            .then_with(|| s1.cmp(o1))
+    }
+}
+
+impl_cmp_eq_on_ord!(Triple);
+
+use crate::modes::{pair::Pair, Footstool, Hand};
+
+impl Hand for Triple {
+    fn is_proper(&self) -> bool {
+        ![self.0, self.1].iter().any(|c| c.is_joker())
+    }
+
+    fn footstool(&self, other: &Self) -> Footstool {
+        match self.cmp(other) {
+            // There is no footstool if self is beaten by other.
+            Ordering::Less => Footstool::None,
+            // We can only full footstool if we have equivalent pairs.
+            Ordering::Equal => Footstool::Full,
+            // Half footstools can only proc if the 2 high cards of each hand
+            // footstool each other using Pair rules.
+            Ordering::Greater => {
+                // By construction, Triple::1 and Triple::2 should always make a
+                // Pair so it's cool to unwrap.
+                let p1 = Pair::new(self.1, self.2).unwrap();
+                let p2 = Pair::new(other.1, other.2).unwrap();
+                match p1.footstool(&p2) {
+                    Footstool::None => Footstool::None,
+                    _ => Footstool::Half,
+                }
             }
         }
     }
 }
 
-impl PartialEq for Triple {
-    fn eq(&self, other: &Self) -> bool {
-        self.cmp(other) == Ordering::Equal
+use std::fmt::{Display, Formatter, Result};
+
+impl Display for Triple {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "Triple[{}, {}, {}]", self.0, self.1, self.2)
     }
 }
 
-impl PartialOrd for Triple {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
+use std::hash::{Hash, Hasher};
+
+impl Hash for Triple {
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        // Pairs are just tuples lol.
+        (self.0, self.1, self.2).hash(state);
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::card::PlayingCard;
+
     use super::*;
 
     #[test]
@@ -84,7 +133,11 @@ mod tests {
                 "Expected ({card}, {joker}, {joker}) to make a triple"
             );
             let trip = trip.unwrap();
-            assert_eq!(trip.2, card, "Expected the highest card of the triple ({}) to be the sole PlayingCard ({card})", trip.2);
+            assert_eq!(
+                trip.2, card,
+                "Expected the highest card of the triple ({}) to be the sole PlayingCard ({card})",
+                trip.2
+            );
         }
 
         todo!("Finish implementing");
