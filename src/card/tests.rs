@@ -7,12 +7,12 @@ mod test_numerics {
     #[test]
     fn rank() {
         // TEST: Negative numbers cannot be ranks
-        assert!(matches!(Rank::try_from(-1), Err(_)));
+        assert!(Rank::try_from(-1).is_err());
 
         // TEST: Numbers >= 13 cannot be a rank.
         for i in 13..1000 {
             assert!(
-                matches!(Rank::try_from(i), Err(_)),
+                Rank::try_from(i).is_err(),
                 "Expected {i} not to match a rank"
             );
         }
@@ -36,12 +36,12 @@ mod test_numerics {
     #[test]
     fn suit() {
         // TEST: Negative numbers cannot be suits
-        assert!(matches!(Suit::try_from(-1), Err(_)));
+        assert!(Suit::try_from(-1).is_err());
 
         // TEST: Numbers >= 4 cannot be a suit.
         for i in 4..1000 {
             assert!(
-                matches!(Suit::try_from(i), Err(_)),
+                Suit::try_from(i).is_err(),
                 "Expected {i} not to match a suit"
             );
         }
@@ -283,7 +283,7 @@ mod test_impls {
             for c in cards {
                 // TEST: rank.cards() generates Playing Cards of the same rank
                 // as the input in deck 0.
-                assert!(matches!(c, Card::PlayingCard(_)));
+                assert!(!c.is_joker());
                 let Card::PlayingCard(c) = c else {
                     unreachable!("See above");
                 };
@@ -314,7 +314,7 @@ mod test_impls {
             for c in cards {
                 // TEST: suit.cards() generates Playing Cards of the same suit
                 // as the input in deck 0.
-                assert!(matches!(c, Card::PlayingCard(_)));
+                assert!(!c.is_joker());
                 let Card::PlayingCard(c) = c else {
                     unreachable!("See above");
                 };
