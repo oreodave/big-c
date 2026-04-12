@@ -1,6 +1,6 @@
 use crate::{card::Card, helper::ordered};
 
-#[derive(Eq, Debug, Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct Pair(Card, Card);
 
 impl Pair {
@@ -12,8 +12,6 @@ impl Pair {
     playing card.
      */
     pub fn new(c1: Card, c2: Card) -> Option<Pair> {
-        // Order the cards.  This means if xor(c1 is joker, c2 is joker) c1 will
-        // be that joker.
         let [c1, c2] = ordered([c1, c2]);
 
         match [c1, c2].map(|c| c.rank()) {
@@ -26,44 +24,7 @@ impl Pair {
     }
 }
 
-use crate::modes::{single::Single, Footstool, Hand};
-
-impl Hand for Pair {
-    fn is_proper(&self) -> bool {
-        matches!(self.0, Card::PlayingCard(_))
-    }
-
-    fn footstool(&self, b: &Self) -> Footstool {
-        match self.cmp(b) {
-            // There is no footstool if self is beaten by other.
-            Ordering::Less => Footstool::None,
-            // We can only full footstool if we have equivalent pairs.
-            Ordering::Equal => Footstool::Full,
-            // Half footstools can proc if self.1 footstools other.1 (full or
-            // half).
-            Ordering::Greater => {
-                // By construction, Pair::1 is always a playing card so we may
-                // safely unwrap here.
-                let s1 = Single::new(self.1).unwrap();
-                let s2 = Single::new(b.1).unwrap();
-                if s1.footstool(&s2) != Footstool::None {
-                    Footstool::Half
-                } else {
-                    Footstool::None
-                }
-            }
-        }
-    }
-}
-
-use std::fmt::{Display, Formatter, Result};
-
-impl Display for Pair {
-    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
-        write!(f, "Pair[{}, {}]", self.0, self.1)
-    }
-}
-
+use crate::helper::impl_cmp_eq_on_ord;
 use std::cmp::Ordering;
 
 impl Ord for Pair {
@@ -77,15 +38,42 @@ impl Ord for Pair {
     }
 }
 
-impl PartialEq for Pair {
-    fn eq(&self, other: &Self) -> bool {
-        self.cmp(other) == Ordering::Equal
+impl_cmp_eq_on_ord!(Pair);
+
+use crate::modes::{single::Single, Footstool, Hand};
+
+impl Hand for Pair {
+    fn is_proper(&self) -> bool {
+        !self.0.is_joker()
+    }
+
+    fn footstool(&self, b: &Self) -> Footstool {
+        match self.cmp(b) {
+            // There is no footstool if self is beaten by other.
+            Ordering::Less => Footstool::None,
+            // We can only full footstool if we have equivalent pairs.
+            Ordering::Equal => Footstool::Full,
+            // Half footstools can proc if self.1 footstools other.1 (full or
+            // half) using Single rules.
+            Ordering::Greater => {
+                // By construction, Pair::1 is always a playing card so we may
+                // safely unwrap here.
+                let s1 = Single::new(self.1).unwrap();
+                let s2 = Single::new(b.1).unwrap();
+                match s1.footstool(&s2) {
+                    Footstool::None => Footstool::None,
+                    _ => Footstool::Half,
+                }
+            }
+        }
     }
 }
 
-impl PartialOrd for Pair {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
+use std::fmt::{Display, Formatter, Result};
+
+impl Display for Pair {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result {
+        write!(f, "Pair[{}, {}]", self.0, self.1)
     }
 }
 
@@ -162,7 +150,7 @@ mod tests {
 
                 // TEST: Improper pairs have a playing card in Pair::1.
                 assert!(
-                    matches!(pair.1, Card::PlayingCard(_)),
+                    !pair.1.is_joker(),
                     "Expected {} to be a playing card",
                     pair.1
                 );
