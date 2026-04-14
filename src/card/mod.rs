@@ -2,6 +2,7 @@ mod default;
 mod display;
 mod hash;
 mod impls;
+mod iters;
 mod numerics;
 mod ord;
 
