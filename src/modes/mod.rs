@@ -17,9 +17,8 @@ pub trait Hand: Ord {
         !self.is_proper()
     }
 
-    /** Given two instances of a Hand (`self` and `other`), verify if `self`
-    footstools `other`.
-     */
+    /// Given two instances of a Hand (`self` and `other`), verify if `self`
+    /// footstools `other`.
     fn footstool(&self, other: &Self) -> Footstool;
 }
 
@@ -29,12 +28,11 @@ mod tests {
 
     use super::*;
 
-    /** Given two hands, assert that applying a footstool both ways fits a
-    recognised basic pattern for footstools (in a generic sense).  Return the
-    results of the two footstool checks (x on y, y on x).
-
-    Obviously may panic.
-     */
+    /// Given two hands, assert that applying a footstool both ways fits a
+    /// recognised basic pattern for footstools (in a generic sense).  Return
+    /// the results of the two footstool checks (x on y, y on x).
+    ///
+    /// Obviously may panic.
     pub fn test_footstool<T>(x: &T, y: &T) -> (Footstool, Footstool)
     where
         T: Hand + Copy + Display + Debug,

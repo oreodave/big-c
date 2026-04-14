@@ -1,13 +1,13 @@
-/** Given an array of arguments, return them sorted.
-Best utilised with array destructuring. */
+/// Given an array of arguments, return them sorted.  Best utilised with array
+/// destructuring.
 pub fn ordered<T: Ord, const N: usize>(mut xs: [T; N]) -> [T; N] {
     xs.sort();
     xs
 }
 
-/** An iterator adaptor (derived from ExactSizedIterator) which has a guaranteed
-compile time size, allowing for collection of an iterator into a stack allocated
-array.  */
+/// An iterator adaptor (derived from ExactSizedIterator) which has a guaranteed
+/// compile time size, allowing for collection of an iterator into a stack
+/// allocated array.
 pub trait ExactSizedArr<I>: ExactSizeIterator<Item = I> + Sized
 where
     I: Default,
@@ -21,7 +21,7 @@ where
     }
 }
 
-/** Default implementation of ExactSizedArr for any ExactSizeIterator.  */
+/// Default implementation of ExactSizedArr for any ExactSizeIterator.
 impl<T, I> ExactSizedArr<T> for I
 where
     T: Default + Copy + Clone,
@@ -29,9 +29,9 @@ where
 {
 }
 
-/** A macro which generates Eq, PartialEq, and PartialOrd implementations for
-some given type.  These implementations are dependent on Ord already being
-implemented for that type. */
+/// A macro which generates Eq, PartialEq, and PartialOrd implementations for
+/// some given type.  These implementations are dependent on Ord already being
+/// implemented for that type.
 macro_rules! impl_cmp_eq_on_ord {
     ($type:ident) => {
         impl PartialEq for $type {
