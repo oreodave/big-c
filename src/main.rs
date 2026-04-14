@@ -5,6 +5,7 @@ mod card;
 mod exactsizearr;
 mod helper;
 mod modes;
+mod zipcartesian;
 
 fn main() {
     println!("Hello, world!");
