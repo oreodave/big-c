@@ -1,10 +1,14 @@
 use crate::card::{Card, PlayingCard, Rank, Suit};
 
+/// Excessively simple card iterator.
 pub struct CardIterator(Card);
 
 impl Iterator for CardIterator {
     type Item = Card;
 
+    /// Generate the next card in the deck based on the current state of the
+    /// CardIterator.  Iteration terminates at the 2 of Spades for the current
+    /// deck.
     fn next(&mut self) -> Option<Card> {
         match self.0 {
             Card::Joker(_) => None,
@@ -25,6 +29,9 @@ impl Iterator for CardIterator {
 }
 
 impl DoubleEndedIterator for CardIterator {
+    /// Generate the previous card in the deck based on the current state of the
+    /// CardIterator.  Iteration terminates at the 3 of Diamonds for the current
+    /// deck.
     fn next_back(&mut self) -> Option<<Self as Iterator>::Item> {
         match self.0 {
             Card::Joker(_) => None,
@@ -45,6 +52,8 @@ impl DoubleEndedIterator for CardIterator {
 }
 
 impl Card {
+    /// Create a CardIterator from the current card, moving the card in the
+    /// process.
     pub fn into_iter(self) -> CardIterator {
         CardIterator(self)
     }

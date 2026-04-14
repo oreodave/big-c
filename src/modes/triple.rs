@@ -4,13 +4,13 @@ use crate::{card::Card, helper::ordered};
 pub struct Triple(Card, Card, Card);
 
 impl Triple {
-    /** Create a new triple utilising 3 cards: `c1`, `c2`, and `c3`.  Will
-    return None iff a Triple cannot be constructed out of those 3 cards.
-
-    NOTE: By construction, if a triple includes 1 Joker, then Triple::0 is that
-    joker.  If a triple includes 2 jokers, then Triple::0 and Triple::1 are
-    those jokers.  This means Triple::2 will always be a valid playing card.
-     */
+    /// Create a new triple utilising 3 cards: `c1`, `c2`, and `c3`.  Will
+    /// return None iff a Triple cannot be constructed out of those 3 cards.
+    ///
+    /// NOTE: By construction, if a triple includes 1 Joker, then Triple::0 is
+    /// that joker.  If a triple includes 2 jokers, then Triple::0 and Triple::1
+    /// are those jokers.  This means Triple::2 will always be a valid playing
+    /// card.
     pub fn new(c1: Card, c2: Card, c3: Card) -> Option<Triple> {
         let [c1, c2, c3] = ordered([c1, c2, c3]);
 

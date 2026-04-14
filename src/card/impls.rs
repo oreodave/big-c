@@ -6,15 +6,15 @@ ExactSizeIterator => Map<Range<i64>> is not an ESI.  But Range<i32> is an ESI.
 */
 
 impl Rank {
-    /** Generate an iterator over all ranks. */
+    /// Generate an iterator over all ranks.
     pub fn iter_all() -> impl ExactSizeIterator<Item = Rank> {
         (0i32..13)
             .map(|n| n as i64)
             .map(|n| Rank::try_from(n).unwrap())
     }
 
-    /** Generate an iterator over all cards within a rank, ordered by Suit.  The
-    cards are all default initialised w.r.t. deck (0).*/
+    /// Generate an iterator over all cards within a rank, ordered by Suit.  The
+    /// cards are all default initialised w.r.t. deck (0).
     pub fn cards(self) -> impl ExactSizeIterator<Item = Card> {
         let n = self as i32;
         ((n * 4)..((n + 1) * 4)).map(|x| Card::from(x as i64))
@@ -22,13 +22,13 @@ impl Rank {
 }
 
 impl Suit {
-    /** Generate an iterator over all suits. */
+    /// Generate an iterator over all suits.
     pub fn iter_all() -> impl ExactSizeIterator<Item = Suit> {
         (0i32..4).map(|n| Suit::try_from(n as i64).unwrap())
     }
 
-    /** Generate an iterator over all cards within a suit, ordered by Rank.  The
-    cards are all default initialised in terms of deck (0).*/
+    /// Generate an iterator over all cards within a suit, ordered by Rank.  The
+    /// cards are all default initialised in terms of deck (0).
     pub fn cards(self) -> impl ExactSizeIterator<Item = Card> {
         Rank::iter_all().map(move |rank| Card::make_playing_card(0, rank, self))
     }
@@ -45,8 +45,8 @@ impl PlayingCard {
         (rank * 4) + suit
     }
 
-    /** Generate an iterator over all Playing Cards in the `nth` deck.  By
-    construction this is in ascending order. */
+    /// Generate an iterator over all Playing Cards in the `nth` deck.  By
+    /// construction this is in ascending order.
     pub fn iter_all(n: i64) -> impl ExactSizeIterator<Item = Self> {
         (0i32..52)
             .map(|x| x as i64)
@@ -90,12 +90,11 @@ impl Card {
         }
     }
 
-    /** Generate an iterator over a `n` decks of Cards.  Each deck is
-    concatenated together.  By construction, each "deck" of the iterator is in
-    ascending order.
-
-    Note that each deck gets two jokers.
-     */
+    /// Generate an iterator over `n` decks of Cards.  Each deck is concatenated
+    /// together.  By construction, each "deck" of the iterator is in ascending
+    /// order.
+    ///
+    /// Note that each deck gets two jokers.
     pub fn iter_all(n: i64) -> impl Iterator<Item = Card> {
         // NOTE: I cannot make this into an ExactSizeIterator using the i32
         // trick.  Chain<ESI, ESI> is not an ESI, nor is FlatMap<T,U,T->U>
