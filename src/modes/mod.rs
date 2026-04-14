@@ -1,3 +1,5 @@
+use crate::card::Card;
+
 pub mod pair;
 pub mod single;
 pub mod triple;
@@ -16,6 +18,8 @@ pub trait Hand: Ord {
     fn is_improper(&self) -> bool {
         !self.is_proper()
     }
+
+    fn high_card(&self) -> Card;
 
     /// Given two instances of a Hand (`self` and `other`), verify if `self`
     /// footstools `other`.
@@ -47,8 +51,7 @@ mod tests {
                 (Footstool::Full, Footstool::Full) => x == y,
                 _ => false,
             },
-            "Expected footstool on {}, {} ({:?}, {:?}) to match a recognised
-            pattern",
+            "Expected footstool on {}, {} ({:?}, {:?}) to match a recognised pattern",
             x,
             y,
             res1,
