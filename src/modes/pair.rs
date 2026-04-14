@@ -46,6 +46,10 @@ impl Hand for Pair {
         !self.0.is_joker()
     }
 
+    fn high_card(&self) -> Card {
+        self.1
+    }
+
     fn footstool(&self, b: &Self) -> Footstool {
         match self.cmp(b) {
             // There is no footstool if self is beaten by other.
@@ -57,8 +61,10 @@ impl Hand for Pair {
             Ordering::Greater => {
                 // By construction, Pair::1 is always a playing card so we may
                 // safely unwrap here.
-                let s1 = Single::new(self.1).unwrap();
-                let s2 = Single::new(b.1).unwrap();
+                let [s1, s2] = [self, b]
+                    .map(Hand::high_card)
+                    .map(Single::new)
+                    .map(Option::unwrap);
                 match s1.footstool(&s2) {
                     Footstool::Full => Footstool::Half,
                     _ => Footstool::None,

@@ -22,6 +22,11 @@ impl Hand for Single {
         true
     }
 
+    fn high_card(&self) -> Card {
+        // I am the high card???
+        self.0
+    }
+
     fn footstool(&self, other: &Self) -> Footstool {
         // We use deck_abs() to get an index in the overall deck ordering.
         match (self.0.deck_abs(), other.0.deck_abs()) {

@@ -24,7 +24,7 @@ impl Triple {
         }
     }
 
-    fn high_pair(&self) -> Pair {
+    pub fn high_pair(&self) -> Pair {
         Pair::new(self.1, self.2).unwrap()
     }
 
@@ -69,6 +69,10 @@ use crate::modes::{pair::Pair, Footstool, Hand};
 impl Hand for Triple {
     fn is_proper(&self) -> bool {
         self.count_jokers() == 0
+    }
+
+    fn high_card(&self) -> Card {
+        self.2
     }
 
     fn footstool(&self, other: &Self) -> Footstool {
