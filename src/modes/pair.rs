@@ -4,13 +4,12 @@ use crate::{card::Card, helper::ordered};
 pub struct Pair(Card, Card);
 
 impl Pair {
-    /** Create a new pair utilising two cards, `c1` and `c2`.  Will return None
-    if a Pair cannot be constructed out of the two cards.
-
-    NOTE: By construction, if the Pair includes a Joker, that Joker will be the
-    first member of the pair.  In other words, Pair::1 will always be a valid
-    playing card.
-     */
+    /// Create a new pair utilising two cards, `c1` and `c2`.  Will return None
+    /// if a Pair cannot be constructed out of the two cards.
+    ///
+    /// NOTE: By construction, if the Pair includes a Joker, that Joker will be
+    /// the first member of the pair.  In other words, Pair::1 will always be a
+    /// valid playing card.
     pub fn new(c1: Card, c2: Card) -> Option<Pair> {
         let [c1, c2] = ordered([c1, c2]);
 
@@ -61,8 +60,8 @@ impl Hand for Pair {
                 let s1 = Single::new(self.1).unwrap();
                 let s2 = Single::new(b.1).unwrap();
                 match s1.footstool(&s2) {
-                    Footstool::None => Footstool::None,
-                    _ => Footstool::Half,
+                    Footstool::Full => Footstool::Half,
+                    _ => Footstool::None,
                 }
             }
         }
@@ -92,6 +91,7 @@ mod tests {
     use crate::{
         card::{PlayingCard, Rank},
         modes::tests::test_footstool,
+        zipcartesian::ZipCatersianExt,
     };
 
     #[test]
@@ -107,63 +107,52 @@ mod tests {
         assert_eq!(Pair::new(Card::make_joker(), Card::make_joker()), None);
 
         // TEST: Non pair tests.
-        Rank::iter_all()
-            // Generate a mapping (r1, r2) where r1, r2 are ranks and r1 != r2
+        for (c1, c2) in Rank::iter_all()
+            // Generate tuples (r1, r2) where r1 != r2
             .flat_map(|r1| {
                 Rank::iter_all()
                     .filter(move |&r2| r2 != r1)
                     .map(move |r2| (r1, r2))
             })
-            // Flat Map for combinations of (cards of rank r1, cards of rank r2)
-            .flat_map(|(r1, r2)| {
-                r1.cards()
-                    .flat_map(move |c1| r2.cards().map(move |c2| (c1, c2)))
-            })
-            .for_each(|(c1, c2)| {
-                // TEST: Two cards of differing rank cannot be a pair
-                let pair = Pair::new(c1, c2);
-                assert!(
-                    pair.is_none(),
-                    "Expected cards {c1} and {c2} to never form a pair."
-                )
-            });
+            // Generate all cards where their ranks differ
+            .flat_map(|(r1, r2)| r1.cards().zip_cartesian(r2.cards()))
+        {
+            // TEST: Two cards of differing rank cannot be a pair
+            let pair = Pair::new(c1, c2);
+            assert!(
+                pair.is_none(),
+                "Expected cards {c1} and {c2} to never form a pair."
+            );
+        }
 
         // TEST: Improper pair tests.
-        PlayingCard::iter_all(0)
-            .map(Card::PlayingCard)
-            .map(|c1| {
-                // TEST: Any card with one joker can be made into a valid pair.
-                let c2 = Card::make_joker();
-                let pair = Pair::new(c1, c2);
-                assert!(
-                    pair.is_some(),
-                    "Expected ({c1}, {c2}) to be a valid pair",
-                );
-                pair.unwrap()
-            })
-            .for_each(|pair| {
-                // TEST: Pairs with a joker are improper.
-                assert!(pair.is_improper(), "Expected {pair} to be improper");
+        for c1 in PlayingCard::iter_all(0).map(Card::PlayingCard) {
+            // TEST: Any card with one joker can be made into a valid pair.
+            let c2 = Card::make_joker();
+            let pair = Pair::new(c1, c2);
+            assert!(pair.is_some(), "Expected ({c1}, {c2}) to be a valid pair",);
 
-                // TEST: Improper pairs have a Joker in Pair::0.
-                assert!(pair.0.is_joker(), "Expected {} to be a joker", pair.0);
+            let pair = pair.unwrap();
 
-                // TEST: Improper pairs have a playing card in Pair::1.
-                assert!(
-                    !pair.1.is_joker(),
-                    "Expected {} to be a playing card",
-                    pair.1
-                );
-            });
+            // TEST: Pairs with a joker are improper.
+            assert!(pair.is_improper(), "Expected {pair} to be improper");
+
+            let Pair(c1, c2) = pair;
+
+            // TEST: Improper pairs have a Joker in Pair::0 (c1).
+            assert!(c1.is_joker(), "Expected {} to be a joker", pair.0);
+
+            // TEST: Improper pairs have a playing card in Pair::1 (c2).
+            assert!(!c2.is_joker(), "Expected {} to be a playing card", pair.1);
+        }
 
         // TEST: Proper pair tests
+        ;
         PlayingCard::iter_all(0)
-            // Flat Map every Playing Card (c1) into combinations (Card c1, Card
-            // of same rank as c1)
-            .flat_map(|c1| {
-                let card_c1 = Card::PlayingCard(c1);
-                c1.rank.cards().map(move |c2| (card_c1, c2))
-            })
+            .map(Card::PlayingCard)
+            // Flat Map every Playing Card (c1) into combinations (Card of same
+            // rank as c1, c1)
+            .flat_map(|c1| c1.rank().unwrap().cards().map(move |c2| (c1, c2)))
             .map(|(c1, c2)| {
                 // TEST: Two cards of similar rank make a valid pair.
                 let pair = {
@@ -174,31 +163,33 @@ mod tests {
                     );
                     pair.unwrap()
                 };
-                // TEST: Pairs of two playing cards are proper
-                assert!(pair.is_proper(), "Expected {pair} to be proper.");
                 (c1, c2, pair)
             })
-            .for_each(|(c1, c2, Pair(p1, p2))| {
+            .for_each(|(c1, c2, pair)| {
+                // TEST: Pairs of two playing cards are proper
+                assert!(
+                    pair.is_proper(),
+                    "Expected {pair} from {c1} and {c2} to be proper."
+                );
+
+                let Pair(p1, p2) = pair;
+
                 // TEST: Pairs always sort their cards in strength.
                 let pair_cards = [p1, p2];
                 let sorted_cards = ordered([c1, c2]);
                 assert_eq!(
-                    pair_cards,
-                    sorted_cards,
-                    "Expected ({}, {}) to be ({}, {})",
-                    pair_cards[0],
-                    pair_cards[1],
-                    sorted_cards[0],
-                    sorted_cards[1]
+                    pair_cards, sorted_cards,
+                    "Expected {} to be equivalent to ({}, {})",
+                    pair, sorted_cards[0], sorted_cards[1]
                 );
             });
     }
 
-    /** Create an exhaustive set of pairs for one deck. */
-    fn exhaustive_pairs_deck() -> impl Iterator<Item = Pair> {
-        Card::iter_all(1).flat_map(|c1| {
-            Card::iter_all(1).filter_map(move |c2| Pair::new(c1, c2))
-        })
+    /// Create an exhaustive set of pairs for one deck.
+    fn exhaustive_pairs_deck() -> impl Iterator<Item = Pair> + Clone {
+        Card::iter_all(1)
+            .zip_cartesian(Card::iter_all(1))
+            .filter_map(|(c1, c2)| Pair::new(c1, c2))
     }
 
     #[test]
@@ -215,8 +206,7 @@ mod tests {
         }
 
         exhaustive_pairs_deck()
-            // Create a flat map of all combinations of two valid pairs.
-            .flat_map(|p1| exhaustive_pairs_deck().map(move |p2| (p1, p2)))
+            .zip_cartesian(exhaustive_pairs_deck())
             .for_each(|(p1, p2)| {
                 // TEST: For any two valid pairs we expect them to have the
                 // `expected_ordering_relation`.
@@ -227,7 +217,7 @@ mod tests {
     #[test]
     fn footstool() {
         exhaustive_pairs_deck()
-            .flat_map(|p1| exhaustive_pairs_deck().map(move |p2| (p1, p2)))
+            .zip_cartesian(exhaustive_pairs_deck())
             .for_each(|(p1, p2)| {
                 // TEST: Expected footstool condition
                 test_footstool(&p1, &p2);
