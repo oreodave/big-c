@@ -54,7 +54,7 @@ mod tests {
     use std::collections::{HashMap, HashSet};
 
     use super::*;
-    use crate::modes::tests::test_footstool;
+    use crate::{modes::tests::test_footstool, zipcartesian::ZipCatersianExt};
 
     #[test]
     fn new() {
@@ -121,11 +121,7 @@ mod tests {
         // with the results of the first footstooling the second.
         let exhaustive_singles_footstool = singles
             .iter()
-            .flat_map(|single| {
-                singles
-                    .iter()
-                    .map(move |other_single| (single, other_single))
-            })
+            .zip_cartesian(singles.iter())
             .map(|(single, other_single)| {
                 // TEST: Expected generic pattern for footstooling of hands -
                 // see mod::tests::test_footstool for details.
@@ -157,23 +153,36 @@ mod tests {
 
             // TEST: For any Single there is only 1 other Single that it
             // half footstools.
-            counter.iter().for_each(|(c1, counter)| {
+            for (c1, counter) in counter.iter() {
                 assert_eq!(
                     counter.len(),
                     1,
                     "Expected {c1} to only have 1 card that it half footstools"
                 );
-            });
+            }
 
             // TEST: For any Single, the Single that it half footstools
             // is unique to it.
             {
-                let mut unique_half_footstools = HashSet::<Single>::new();
-                counter.iter().for_each(|(c1, counter)| {
-                    let c2 = counter[0];
-                    assert_eq!(unique_half_footstools.get(&c2), None, "Expected {c2} to be unique to the half footstools of {c1}");
+                let mut unique_half_footstools = HashSet::<Card>::new();
+                for (Single(c1), counter) in counter.iter() {
+                    let Single(c2) = counter[0];
+                    assert_eq!(
+                        unique_half_footstools.get(&c2),
+                        None,
+                        "Expected {c2} to be only a half footstool of {c1}"
+                    );
                     unique_half_footstools.insert(c2);
-                })
+
+                    // So c2 was half footstooled by c1.
+
+                    // TEST: c1 is the direct next card after c2.
+                    let c3 = c2.into_iter().next().unwrap();
+                    assert_eq!(
+                        *c1, c3,
+                        "Expected next(c2) = c1 as c2 half footstools c1"
+                    );
+                }
             }
 
             // TEST: The only Single that doesn't have a half footstool is 3[D]
@@ -232,6 +241,7 @@ mod tests {
          */
 
         const N_DECKS: usize = 10;
+        const N_DECKS_SQR: usize = N_DECKS * N_DECKS;
 
         // Function which maps a Footstool to a usize for use in array indexing.
         fn footstool_to_numeral(f: Footstool) -> usize {
@@ -248,14 +258,12 @@ mod tests {
             let mut counter = [0; 3];
             // Iterator over Cards from N_DECKS number of decks.
             let cards = (0..((N_DECKS as i64) * 52)).map(Card::from);
-            cards
-                .clone()
-                .flat_map(move |c1| cards.clone().map(move |c2| (c1, c2)))
-                .for_each(|(c1, c2)| {
-                    let res = test_footstool(&Single(c1), &Single(c2)).0;
-                    let res = footstool_to_numeral(res);
-                    counter[res] += 1;
-                });
+
+            for (c1, c2) in cards.clone().zip_cartesian(cards.clone()) {
+                let res = test_footstool(&Single(c1), &Single(c2)).0;
+                let res = footstool_to_numeral(res);
+                counter[res] += 1;
+            }
 
             counter
         };
@@ -263,12 +271,12 @@ mod tests {
         let [_, half, full] = counter;
 
         // TEST: There are 103n^2 footstool instances.
-        assert_eq!(103 * N_DECKS * N_DECKS, half + full);
+        assert_eq!(103 * N_DECKS_SQR, half + full);
 
         // TEST: There are 51n^2 half footstool instances.
-        assert_eq!(51 * N_DECKS * N_DECKS, half);
+        assert_eq!(51 * N_DECKS_SQR, half);
 
         // TEST: There are 52n^2 full footstool instances.
-        assert_eq!(52 * N_DECKS * N_DECKS, full);
+        assert_eq!(52 * N_DECKS_SQR, full);
     }
 }
