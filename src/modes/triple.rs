@@ -20,13 +20,19 @@ impl Triple {
             [Some(r1), Some(r2), Some(r3)] if r1 == r2 && r2 == r3 => {
                 Some(Triple(c1, c2, c3))
             }
-
             _ => None,
         }
     }
 
+    fn high_pair(&self) -> Pair {
+        Pair::new(self.1, self.2).unwrap()
+    }
+
     fn count_jokers(&self) -> usize {
-        [self.0, self.1].iter().filter(|c| c.is_joker()).count()
+        [self.0, self.1, self.2]
+            .iter()
+            .filter(|c| c.is_joker())
+            .count()
     }
 }
 
@@ -35,20 +41,16 @@ use std::cmp::Ordering;
 
 impl Ord for Triple {
     fn cmp(&self, other: &Self) -> Ordering {
-        // We count jokers as part of our ordering.
-        let self_jokers = self.count_jokers();
-        let other_jokers = other.count_jokers();
-
         let Triple(s1, s2, s3) = self;
         let Triple(o1, o2, o3) = other;
 
-        // The most critical part of ordering is top card comparison
+        // The most critical part of ordering is top card rank comparison.
         s3.rank()
             .cmp(&o3.rank())
             // if we have 2 triples, both with the same ranked high card, and
             // one has 2 jokers while the other doesn't => the 2 joker triple is
             // worse.
-            .then_with(|| match (self_jokers, other_jokers) {
+            .then_with(|| match (self.count_jokers(), other.count_jokers()) {
                 (2, x) if x < 2 => Ordering::Less,
                 (x, 2) if x < 2 => Ordering::Greater,
                 _ => Ordering::Equal,
@@ -66,25 +68,24 @@ use crate::modes::{pair::Pair, Footstool, Hand};
 
 impl Hand for Triple {
     fn is_proper(&self) -> bool {
-        ![self.0, self.1].iter().any(|c| c.is_joker())
+        self.count_jokers() == 0
     }
 
     fn footstool(&self, other: &Self) -> Footstool {
         match self.cmp(other) {
             // There is no footstool if self is beaten by other.
             Ordering::Less => Footstool::None,
-            // We can only full footstool if we have equivalent pairs.
+            // We can only full footstool if we have equivalent triples.
             Ordering::Equal => Footstool::Full,
             // Half footstools can only proc if the 2 high cards of each hand
             // footstool each other using Pair rules.
             Ordering::Greater => {
                 // By construction, Triple::1 and Triple::2 should always make a
                 // Pair so it's cool to unwrap.
-                let p1 = Pair::new(self.1, self.2).unwrap();
-                let p2 = Pair::new(other.1, other.2).unwrap();
+                let [p1, p2] = [self, other].map(|x| x.high_pair());
                 match p1.footstool(&p2) {
-                    Footstool::None => Footstool::None,
-                    _ => Footstool::Half,
+                    Footstool::Full => Footstool::Half,
+                    _ => Footstool::None,
                 }
             }
         }
