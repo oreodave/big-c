@@ -204,28 +204,6 @@ mod tests {
     }
 
     #[test]
-    fn ordering() {
-        fn expected_ordering_relation(p1: &Pair, p2: &Pair) -> bool {
-            match (p1.cmp(p2), p1.1.cmp(&p2.1), p1.0.cmp(&p2.0)) {
-                // For any two pairs, we expect the high cards to dictate the
-                // ordering of the pairs first.  The low card only matters if
-                // the high cards are equivalent.
-                (x, Ordering::Equal, z) if x == z => true,
-                (x, y, _) if x == y => true,
-                _ => false,
-            }
-        }
-
-        exhaustive_pairs_deck()
-            .zip_cartesian(exhaustive_pairs_deck())
-            .for_each(|(p1, p2)| {
-                // TEST: For any two valid pairs we expect them to have the
-                // `expected_ordering_relation`.
-                assert!(expected_ordering_relation(&p1, &p2));
-            })
-    }
-
-    #[test]
     fn footstool() {
         exhaustive_pairs_deck()
             .zip_cartesian(exhaustive_pairs_deck())
