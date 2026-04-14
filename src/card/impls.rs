@@ -7,29 +7,40 @@ ExactSizeIterator => Map<Range<i64>> is not an ESI.  But Range<i32> is an ESI.
 
 impl Rank {
     /// Generate an iterator over all ranks.
-    pub fn iter_all() -> impl ExactSizeIterator<Item = Rank> + Clone {
-        (0i32..13)
-            .map(|n| n as i64)
-            .map(|n| Rank::try_from(n).unwrap())
+    pub fn iter_all() -> [Rank; 13] {
+        [
+            Rank::Three,
+            Rank::Four,
+            Rank::Five,
+            Rank::Six,
+            Rank::Seven,
+            Rank::Eight,
+            Rank::Nine,
+            Rank::Ten,
+            Rank::Jack,
+            Rank::Queen,
+            Rank::King,
+            Rank::Ace,
+            Rank::Two,
+        ]
     }
 
     /// Generate an iterator over all cards within a rank, ordered by Suit.  The
     /// cards are all default initialised w.r.t. deck (0).
-    pub fn cards(self) -> impl ExactSizeIterator<Item = Card> + Clone {
-        let n = self as i32;
-        ((n * 4)..((n + 1) * 4)).map(|x| Card::from(x as i64))
+    pub fn cards(self) -> [Card; 4] {
+        Suit::iter_all().map(move |suit| Card::make_playing_card(0, self, suit))
     }
 }
 
 impl Suit {
     /// Generate an iterator over all suits.
-    pub fn iter_all() -> impl ExactSizeIterator<Item = Suit> + Clone {
-        (0i32..4).map(|n| Suit::try_from(n as i64).unwrap())
+    pub fn iter_all() -> [Suit; 4] {
+        [Suit::Diamond, Suit::Club, Suit::Heart, Suit::Spade]
     }
 
     /// Generate an iterator over all cards within a suit, ordered by Rank.  The
     /// cards are all default initialised in terms of deck (0).
-    pub fn cards(self) -> impl ExactSizeIterator<Item = Card> + Clone {
+    pub fn cards(self) -> [Card; 13] {
         Rank::iter_all().map(move |rank| Card::make_playing_card(0, rank, self))
     }
 }
@@ -47,11 +58,12 @@ impl PlayingCard {
 
     /// Generate an iterator over all Playing Cards in the `nth` deck.  By
     /// construction this is in ascending order.
-    pub fn iter_all(n: i64) -> impl ExactSizeIterator<Item = Self> + Clone {
-        (0i32..52)
-            .map(|x| x as i64)
-            .map(move |x| x + (52 * n))
-            .map(|x| PlayingCard::try_from(x).unwrap())
+    pub fn iter_all(n: i64) -> [PlayingCard; 52] {
+        let mut cards: [PlayingCard; 52] = [PlayingCard::default(); 52];
+        for i in 0..52 {
+            cards[i] = PlayingCard::try_from((i as i64) + (52 * n)).unwrap();
+        }
+        cards
     }
 }
 

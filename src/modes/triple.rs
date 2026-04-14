@@ -151,9 +151,9 @@ mod tests {
         }
 
         // Iterate over all pairs of cards with similar ranks
-        for (c1, c2) in
-            Rank::iter_all().flat_map(|r| r.cards().zip_cartesian(r.cards()))
-        {
+        for (c1, c2) in Rank::iter_all().into_iter().flat_map(|r| {
+            r.cards().into_iter().zip_cartesian(r.cards().into_iter())
+        }) {
             let trip = Triple::new(c1, c2, joker);
             // TEST: Any two similar rank cards with 1 joker are a
             // Triple.
@@ -189,12 +189,16 @@ mod tests {
 
         // Iterate over all pairs of cards with differing ranks
         for (c1, c2) in Rank::iter_all()
+            .into_iter()
             .flat_map(|r1| {
                 Rank::iter_all()
+                    .into_iter()
                     .filter(move |&r2| r2 != r1)
                     .map(move |r2| (r1, r2))
             })
-            .flat_map(|(r1, r2)| r1.cards().zip_cartesian(r2.cards()))
+            .flat_map(|(r1, r2)| {
+                r1.cards().into_iter().zip_cartesian(r2.cards().into_iter())
+            })
         {
             // TEST: Cannot make a triple out of 1 joker and two different rank
             // cards
@@ -206,9 +210,13 @@ mod tests {
         }
 
         // Iterate over all triples of cards (regardless of rank)
-        for (c1, (c2, c3)) in PlayingCard::iter_all(0).zip_cartesian(
-            PlayingCard::iter_all(0).zip_cartesian(PlayingCard::iter_all(0)),
-        ) {
+        for (c1, (c2, c3)) in
+            PlayingCard::iter_all(0).into_iter().zip_cartesian(
+                PlayingCard::iter_all(0)
+                    .into_iter()
+                    .zip_cartesian(PlayingCard::iter_all(0).into_iter()),
+            )
+        {
             let [c1, c2, c3] = [c1, c2, c3].map(Card::PlayingCard);
             let trip = Triple::new(c1, c2, c3);
 
