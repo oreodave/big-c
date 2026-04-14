@@ -108,14 +108,18 @@ mod tests {
 
         // TEST: Non pair tests.
         for (c1, c2) in Rank::iter_all()
+            .into_iter()
             // Generate tuples (r1, r2) where r1 != r2
             .flat_map(|r1| {
                 Rank::iter_all()
+                    .into_iter()
                     .filter(move |&r2| r2 != r1)
                     .map(move |r2| (r1, r2))
             })
             // Generate all cards where their ranks differ
-            .flat_map(|(r1, r2)| r1.cards().zip_cartesian(r2.cards()))
+            .flat_map(|(r1, r2)| {
+                r1.cards().into_iter().zip_cartesian(r2.cards().into_iter())
+            })
         {
             // TEST: Two cards of differing rank cannot be a pair
             let pair = Pair::new(c1, c2);
@@ -150,6 +154,7 @@ mod tests {
         ;
         PlayingCard::iter_all(0)
             .map(Card::PlayingCard)
+            .into_iter()
             // Flat Map every Playing Card (c1) into combinations (Card of same
             // rank as c1, c1)
             .flat_map(|c1| c1.rank().unwrap().cards().map(move |c2| (c1, c2)))
