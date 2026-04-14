@@ -269,6 +269,7 @@ mod test_impls {
     use crate::{
         card::{Card, PlayingCard, Rank, Suit},
         exactsizearr::ExactSizedArr,
+        zipcartesian::ZipCatersianExt,
     };
 
     #[test]
@@ -413,8 +414,7 @@ mod test_impls {
                 counter
             };
 
-            for (rank, suit) in Rank::iter_all()
-                .flat_map(|r| Suit::iter_all().map(move |s| (r, s)))
+            for (rank, suit) in Rank::iter_all().zip_cartesian(Suit::iter_all())
             {
                 // TEST: We expect `decks` instances of a (rank, suit)
                 // combination in Card::iter_all(decks).
