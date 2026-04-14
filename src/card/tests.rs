@@ -268,7 +268,7 @@ mod test_impls {
 
     use crate::{
         card::{Card, PlayingCard, Rank, Suit},
-        helper::ExactSizedArr,
+        exactsizearr::ExactSizedArr,
     };
 
     #[test]
