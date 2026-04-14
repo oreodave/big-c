@@ -111,7 +111,7 @@ impl Hash for Triple {
 
 #[cfg(test)]
 mod tests {
-    use crate::card::PlayingCard;
+    use crate::card::{PlayingCard, Rank};
 
     use super::*;
 
@@ -126,14 +126,20 @@ mod tests {
             "Expected triple of 3 jokers to be None"
         );
 
-        // TEST: Any card with two jokers is a triple
         for card in PlayingCard::iter_all(0).map(Card::PlayingCard) {
             let trip = Triple::new(card, joker, joker);
+            // TEST: Any card with two jokers is a triple
             assert!(
                 trip.is_some(),
                 "Expected ({card}, {joker}, {joker}) to make a triple"
             );
             let trip = trip.unwrap();
+
+            // TEST: Triples formed with 2 jokers are improper.
+            assert!(trip.is_improper(), "Expected {trip} to be improper");
+
+            // TEST: Triples with 2 jokers should have a playing card for
+            // Triple::2.
             assert_eq!(
                 trip.2, card,
                 "Expected the highest card of the triple ({}) to be the sole PlayingCard ({card})",
@@ -141,6 +147,81 @@ mod tests {
             );
         }
 
-        todo!("Finish implementing");
+        for rank in Rank::iter_all() {
+            for (c1, c2) in rank.cards().zip(rank.cards()) {
+                let trip = Triple::new(c1, c2, joker);
+                // TEST: Any two similar rank cards with 1 joker are a
+                // Triple.
+                assert_ne!(
+                    trip, None,
+                    "Expected ({c1}, {c2}, Joker) to make a Triple"
+                );
+
+                let trip = trip.unwrap();
+
+                // TEST: Triples formed with 1 joker are improper.
+                assert!(trip.is_improper(), "Expected {trip} to be improper");
+
+                // TEST: 1 joker triples have Triple::0 as the joker.
+                assert!(
+                    matches!(trip.0, Card::Joker(_)),
+                    "Expected {} to be a joker",
+                    trip.0
+                );
+
+                let [c1, c2] = ordered([c1, c2]);
+
+                // TEST: Expect Triple::1 and Triple::2 to follow ordering
+                // of c1 and c2.
+                assert_eq!(
+                    [trip.1, trip.2],
+                    [c1, c2],
+                    "Expected {} = min({c1}, {c2}) and {} = max({c1}, {c2})",
+                    trip.1,
+                    trip.2,
+                );
+            }
+        }
+
+        for (c1, (c2, c3)) in PlayingCard::iter_all(0)
+            .zip(PlayingCard::iter_all(0).zip(PlayingCard::iter_all(0)))
+        {
+            let [c1, c2, c3] = [c1, c2, c3].map(Card::PlayingCard);
+            let trip = Triple::new(c1, c2, c3);
+
+            // TEST: Any 3 playing cards make a triple iff they match in
+            // rank
+            if !(c1.rank() == c2.rank() && c2.rank() == c3.rank()) {
+                assert_eq!(
+                    trip, None,
+                    "Expected {c1}, {c2}, {c3} to never make a Triple."
+                );
+                continue;
+            } else {
+                assert_ne!(
+                    trip, None,
+                    "Expected {c1}, {c2}, {c3} to make a Triple."
+                );
+            }
+
+            let trip = trip.unwrap();
+            // TEST: Triples formed of 3 playing cards are proper.
+            assert!(trip.is_proper(), "Expected {trip} to be proper");
+
+            let [c1, c2, c3] = ordered([c1, c2, c3]);
+
+            // TEST: If a triple is formed of 3 playing cards, they are
+            // ordered s.t. Triple::2 > Triple::1 > Triple::0.
+            assert_eq!(
+                [trip.0, trip.1, trip.2],
+                [c1, c2, c3],
+                "Expected cards of {} to match ordered cards [{}, {}, {}]",
+                trip,
+                c1,
+                c2,
+                c3
+            );
+        }
+    }
     }
 }
