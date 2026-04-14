@@ -111,7 +111,10 @@ impl Hash for Triple {
 
 #[cfg(test)]
 mod tests {
-    use crate::card::{PlayingCard, Rank};
+    use crate::{
+        card::{PlayingCard, Rank},
+        zipcartesian::ZipCartesianExt,
+    };
 
     use super::*;
 
@@ -129,8 +132,8 @@ mod tests {
         for card in PlayingCard::iter_all(0).map(Card::PlayingCard) {
             let trip = Triple::new(card, joker, joker);
             // TEST: Any card with two jokers is a triple
-            assert!(
-                trip.is_some(),
+            assert_ne!(
+                trip, None,
                 "Expected ({card}, {joker}, {joker}) to make a triple"
             );
             let trip = trip.unwrap();
@@ -147,45 +150,65 @@ mod tests {
             );
         }
 
-        for rank in Rank::iter_all() {
-            for (c1, c2) in rank.cards().zip(rank.cards()) {
-                let trip = Triple::new(c1, c2, joker);
-                // TEST: Any two similar rank cards with 1 joker are a
-                // Triple.
-                assert_ne!(
-                    trip, None,
-                    "Expected ({c1}, {c2}, Joker) to make a Triple"
-                );
+        // Iterate over all pairs of cards with similar ranks
+        for (c1, c2) in
+            Rank::iter_all().flat_map(|r| r.cards().zip_cartesian(r.cards()))
+        {
+            let trip = Triple::new(c1, c2, joker);
+            // TEST: Any two similar rank cards with 1 joker are a
+            // Triple.
+            assert_ne!(
+                trip, None,
+                "Expected ({c1}, {c2}, Joker) to make a Triple"
+            );
 
-                let trip = trip.unwrap();
+            let trip = trip.unwrap();
 
-                // TEST: Triples formed with 1 joker are improper.
-                assert!(trip.is_improper(), "Expected {trip} to be improper");
+            // TEST: Triples formed with 1 joker are improper.
+            assert!(trip.is_improper(), "Expected {trip} to be improper");
 
-                // TEST: 1 joker triples have Triple::0 as the joker.
-                assert!(
-                    matches!(trip.0, Card::Joker(_)),
-                    "Expected {} to be a joker",
-                    trip.0
-                );
+            // TEST: 1 joker triples have Triple::0 as the joker.
+            assert!(
+                matches!(trip.0, Card::Joker(_)),
+                "Expected {} to be a joker",
+                trip.0
+            );
 
-                let [c1, c2] = ordered([c1, c2]);
+            let [c1, c2] = ordered([c1, c2]);
 
-                // TEST: Expect Triple::1 and Triple::2 to follow ordering
-                // of c1 and c2.
-                assert_eq!(
-                    [trip.1, trip.2],
-                    [c1, c2],
-                    "Expected {} = min({c1}, {c2}) and {} = max({c1}, {c2})",
-                    trip.1,
-                    trip.2,
-                );
-            }
+            // TEST: Expect Triple::1 and Triple::2 to follow ordering
+            // of c1 and c2.
+            assert_eq!(
+                [trip.1, trip.2],
+                [c1, c2],
+                "Expected {} = min({c1}, {c2}) and {} = max({c1}, {c2})",
+                trip.1,
+                trip.2,
+            );
         }
 
-        for (c1, (c2, c3)) in PlayingCard::iter_all(0)
-            .zip(PlayingCard::iter_all(0).zip(PlayingCard::iter_all(0)))
+        // Iterate over all pairs of cards with differing ranks
+        for (c1, c2) in Rank::iter_all()
+            .flat_map(|r1| {
+                Rank::iter_all()
+                    .filter(move |&r2| r2 != r1)
+                    .map(move |r2| (r1, r2))
+            })
+            .flat_map(|(r1, r2)| r1.cards().zip_cartesian(r2.cards()))
         {
+            // TEST: Cannot make a triple out of 1 joker and two different rank
+            // cards
+            let trip = Triple::new(c1, c2, joker);
+            assert_eq!(
+                trip, None,
+                "Expected ({c1}, {c2}, {joker}) to never make a triple."
+            );
+        }
+
+        // Iterate over all triples of cards (regardless of rank)
+        for (c1, (c2, c3)) in PlayingCard::iter_all(0).zip_cartesian(
+            PlayingCard::iter_all(0).zip_cartesian(PlayingCard::iter_all(0)),
+        ) {
             let [c1, c2, c3] = [c1, c2, c3].map(Card::PlayingCard);
             let trip = Triple::new(c1, c2, c3);
 
