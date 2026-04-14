@@ -130,7 +130,7 @@ mod tests {
             // TEST: Any card with one joker can be made into a valid pair.
             let c2 = Card::make_joker();
             let pair = Pair::new(c1, c2);
-            assert!(pair.is_some(), "Expected ({c1}, {c2}) to be a valid pair",);
+            assert_ne!(pair, None, "Expected ({c1}, {c2}) to be a valid pair");
 
             let pair = pair.unwrap();
 
@@ -157,8 +157,8 @@ mod tests {
                 // TEST: Two cards of similar rank make a valid pair.
                 let pair = {
                     let pair = Pair::new(c1, c2);
-                    assert!(
-                        pair.is_some(),
+                    assert_ne!(
+                        pair, None,
                         "Expected {c1} and {c2} to form a valid pair."
                     );
                     pair.unwrap()
