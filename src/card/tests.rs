@@ -269,7 +269,7 @@ mod test_impls {
     use crate::{
         card::{Card, PlayingCard, Rank, Suit},
         exactsizearr::ExactSizedArr,
-        zipcartesian::ZipCatersianExt,
+        zipcartesian::ZipCartesianExt,
     };
 
     #[test]
