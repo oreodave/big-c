@@ -91,7 +91,7 @@ mod tests {
     use crate::{
         card::{PlayingCard, Rank},
         modes::tests::test_footstool,
-        zipcartesian::ZipCatersianExt,
+        zipcartesian::ZipCartesianExt,
     };
 
     #[test]

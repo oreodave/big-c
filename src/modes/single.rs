@@ -54,7 +54,7 @@ mod tests {
     use std::collections::{HashMap, HashSet};
 
     use super::*;
-    use crate::{modes::tests::test_footstool, zipcartesian::ZipCatersianExt};
+    use crate::{modes::tests::test_footstool, zipcartesian::ZipCartesianExt};
 
     #[test]
     fn new() {

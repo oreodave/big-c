@@ -1,6 +1,6 @@
 use std::iter::Iterator;
 
-pub trait ZipCatersianExt: Iterator {
+pub trait ZipCartesianExt: Iterator {
     fn zip_cartesian<B>(
         self,
         b: B,
@@ -11,7 +11,7 @@ pub trait ZipCatersianExt: Iterator {
         B: Iterator<Item: Copy> + Clone;
 }
 
-impl<I: Iterator<Item: Copy> + Clone> ZipCatersianExt for I {
+impl<I: Iterator<Item: Copy> + Clone> ZipCartesianExt for I {
     /// Exhaustive coupling of two iterators.
     /// For each x in `self`: for each y in `b`: yield (x, y).
     /// b: B must implement `Clone`.
