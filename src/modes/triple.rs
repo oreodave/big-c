@@ -117,6 +117,7 @@ impl Hash for Triple {
 mod tests {
     use crate::{
         card::{PlayingCard, Rank},
+        modes::tests::test_footstool,
         zipcartesian::ZipCartesianExt,
     };
 
@@ -258,5 +259,102 @@ mod tests {
             );
         }
     }
+
+    fn exhaustive_triples_deck() -> impl Iterator<Item = Triple> + Clone {
+        Card::iter_all(1)
+            .zip_cartesian(Card::iter_all(1).zip_cartesian(Card::iter_all(1)))
+            .filter_map(|(c1, (c2, c3))| Triple::new(c1, c2, c3))
+    }
+
+    fn exhaustive_triples_rank(
+        rank: Rank,
+    ) -> impl Iterator<Item = Triple> + Clone {
+        let choices = rank.cards().into_iter().chain([Card::make_joker()]);
+        let c1s = choices.clone();
+        let c2s = choices.clone();
+        let c3s = choices.clone();
+        c1s.zip_cartesian(c2s.zip_cartesian(c3s))
+            .filter_map(|(c1, (c2, c3))| Triple::new(c1, c2, c3))
+    }
+
+    #[test]
+    fn ordering() {
+        // Unlike pairs and singles, the complexity of triples ordering is too
+        // great to be exhaustive.  As a compromise, we'll run through a bunch
+        // of cases that should demonstrate everything we want.
+
+        let joker = Card::make_joker();
+
+        for (t1, t2) in
+            // Iterate through all pairs of differing ranks (r1, r2) where r2 >
+            // r1
+            Rank::iter_all()
+                .into_iter()
+                .flat_map(|r1| {
+                    Rank::iter_all()
+                        .into_iter()
+                        .filter(move |&r2| r2 > r1)
+                        .map(move |r2| (r1, r2))
+                })
+                // Generate an exhaustive set of triples where rank(t1) <
+                // rank(t2)
+                .flat_map(|(r1, r2)| {
+                    exhaustive_triples_rank(r1)
+                        .zip_cartesian(exhaustive_triples_rank(r2))
+                })
+        {
+            // TEST: Any triple formed of some higher rank will be better than
+            // any triple formed of a lower rank.
+            assert!(t2 > t1, "Expected {t1} < {t2} as rank({t1}) < rank({t2})");
+            assert!(t1 < t2, "Expected {t2} > {t1} as rank({t1}) < rank({t2})");
+        }
+
+        // So high card rank determines ordering between differing ranked
+        // triples.
+
+        // Iterate through all ranks
+        for rank in Rank::iter_all() {
+            let cards = rank.cards();
+
+            // All possible 2 joker triples for this rank.
+            let two_joker_triples = cards
+                .map(|c| Triple::new(c, joker, joker))
+                .map(Option::unwrap);
+
+            for triple in
+                exhaustive_triples_rank(rank).filter(|x| x.count_jokers() < 2)
+            {
+                for two_joker_trip in two_joker_triples {
+                    // TEST: A two joker triple is always worse than any triples
+                    // in the same rank that have at most 1 joker.
+                    assert!(two_joker_trip < triple);
+                }
+            }
+
+            let [diamond, _, _, spade] = cards;
+
+            // NOTE: By new test this should be safe to unwrap.
+            let minima = Triple::new(diamond, joker, joker).unwrap();
+            let maxima = Triple::new(spade, spade, spade).unwrap();
+
+            for triple in exhaustive_triples_rank(rank) {
+                // TEST: The lowest possible triple in a rank is a diamond + 2
+                // jokers
+                assert!(minima <= triple);
+                // TEST: The highest possible triple in a rank is 3 spades
+                assert!(maxima >= triple);
+            }
+        }
+    }
+
+    #[test]
+    fn footstool() {
+        let triples = exhaustive_triples_deck().collect::<Vec<_>>();
+        for t1 in &triples {
+            for t2 in &triples {
+                // TEST: Expected footstool condition
+                test_footstool(t1, t2);
+            }
+        }
     }
 }
