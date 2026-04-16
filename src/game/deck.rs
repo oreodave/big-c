@@ -16,7 +16,7 @@ pub enum Reason {
 
 impl Deck {
     pub fn new_empty() -> Self {
-        Deck(Vec::new())
+        Self(Vec::new())
     }
 
     pub fn new_full(n: usize) -> Self {
