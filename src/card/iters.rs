@@ -17,7 +17,7 @@ impl Iterator for CardIterator {
                 suit: Suit::Spade,
                 deck,
             }) => {
-                self.0 = Card::Joker((deck + 1) * -1);
+                self.0 = Card::Joker(-(deck + 1));
                 None
             }
             Card::PlayingCard(pc) => {
@@ -40,7 +40,7 @@ impl DoubleEndedIterator for CardIterator {
                 suit: Suit::Diamond,
                 deck,
             }) => {
-                self.0 = Card::Joker((deck + 1) * -1);
+                self.0 = Card::Joker(-(deck + 1));
                 None
             }
             Card::PlayingCard(pc) => {
