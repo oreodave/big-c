@@ -19,18 +19,17 @@ where
     I::Item: Copy,
 {
     /// Exhaustive coupling of two iterators.
-    /// For each x in `self`: for each y in `b`: yield (x, y).
-    /// b: B must implement `Clone`.
-    fn zip_cartesian<B>(
+    /// For each x in `self`: for each y in `other`: yield (x, y).
+    fn zip_cartesian<Other>(
         self,
-        b: B,
-    ) -> impl Iterator<Item = (Self::Item, B::Item)> + Clone
+        other: Other,
+    ) -> impl Iterator<Item = (Self::Item, Other::Item)> + Clone
     where
-        B::Item: Copy,
-        B: Iterator + Clone,
+        Other::Item: Copy,
+        Other: Iterator + Clone,
     {
         self.flat_map(move |a_item| {
-            b.clone().map(move |b_item| (a_item, b_item))
+            other.clone().map(move |b_item| (a_item, b_item))
         })
     }
 }

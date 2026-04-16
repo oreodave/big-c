@@ -113,11 +113,11 @@ mod tests {
         assert_eq!(Pair::new(Card::make_joker(), Card::make_joker()), None);
 
         // TEST: Non pair tests.
-        for (c1, c2) in Rank::iter_all()
+        for (c1, c2) in Rank::all()
             .into_iter()
             // Generate tuples (r1, r2) where r1 != r2
             .flat_map(|r1| {
-                Rank::iter_all()
+                Rank::all()
                     .into_iter()
                     .filter(move |&r2| r2 != r1)
                     .map(move |r2| (r1, r2))
