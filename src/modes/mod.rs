@@ -12,16 +12,18 @@ pub enum Footstool {
 }
 
 pub trait Hand: Ord {
-    // Only need to implement is_proper.
+    /// Return true if the current hand doesn't have any jokers.
     fn is_proper(&self) -> bool;
 
+    /// Return true if the current hand has at least one Joker.
     fn is_improper(&self) -> bool {
         !self.is_proper()
     }
 
+    /// Get the high card of the current hand.
     fn high_card(&self) -> Card;
 
-    /// Given two instances of a Hand (`self` and `other`), verify if `self`
+    /// Given two instances of a Hand (`self` and `other`), return if `self`
     /// footstools `other`.
     fn footstool(&self, other: &Self) -> Footstool;
 }
