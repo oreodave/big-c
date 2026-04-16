@@ -19,6 +19,8 @@ impl Deck {
         Self(Vec::new())
     }
 
+    /// Create a new deck composed of `n` of decks of cards (using
+    /// `Card::iter_all`).  Guaranteed to have 54`n` cards by construction.
     pub fn new_full(n: usize) -> Self {
         assert!(n > 0);
         Self(Card::iter_all(n as i64).collect())
@@ -36,10 +38,13 @@ impl Deck {
         self.0.shuffle(rng);
     }
 
+    /// Sort cards within the deck by the ordering implementation for Cards.
+    /// See [[file:../card/ord.rs::impl Ord for Card {]].
     pub fn sort(&mut self) {
         self.0.sort();
     }
 
+    /// Sort cards within the deck by suit in ascending order.
     pub fn sort_by_suit(&mut self) {
         // Sort by suit then rank
         self.0.sort_by(|x, y| {
