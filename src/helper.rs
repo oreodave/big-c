@@ -1,4 +1,4 @@
-/// Given an array of arguments, return them sorted.  Best utilised with array
+/// Given an array of items, return them sorted.  Best utilised with array
 /// destructuring.
 pub fn ordered<T: Ord, const N: usize>(mut xs: [T; N]) -> [T; N] {
     xs.sort();
