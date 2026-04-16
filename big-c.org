@@ -1,13 +1,30 @@
 #+filetags: big-c
 
-* WIP triples :modes:feat_triples:
-Model the concept of a triple (three cards of similar rank).
-** DONE Triple::new
-** DONE Hand
-** DONE Display
-** DONE Ord
-** DONE Hash
-** WIP Testing
+* TODO Basic Game mechanics :game:
+Now that we have singles, pairs, and triples, let's implement a basic
+2-player version of the game.
+
+We'll ignore player election for now in favour of random ordering.
+
+Here's the basic order of play:
+1) Round chooser player plays a hand of whatever round type they want
+2) Each player takes turns playing a hand of that round type better
+   than the previous hand
+3) If either player skips, they pick up a card, and the other player
+   becomes the round chooser (allowing them to choose a new round
+   type)
+4) If player (A) uses up all their cards, and the other player does
+   not footstool them, that player (A) wins.
+
+We must also implement footstooling:
+- If player (A) plays a hand, and the next player plays a hand that
+  half footstools it, then player (A) must pick up a card.
+- If player (A) plays a hand, and the next player plays a hand that
+  full footstools it, then player (A) must pick up 2 cards.
+** TODO Game structure and player structure
+** TODO Round choice
+** TODO Round gameplay
+** TODO Win state
 * Backlog :backlog:
 ** TODO Implement player and game structure
 A game should have a table of players, a deck of unplayed cards, a
@@ -148,4 +165,12 @@ MVP goals:
 ** DONE Refactor Cards :refactor_cards:
 It's really bloated - should probably be a subcrate.
 *** DONE Split into module
+*** DONE Testing
+** DONE triples :modes:feat_triples:
+Model the concept of a triple (three cards of similar rank).
+*** DONE Triple::new
+*** DONE Hand
+*** DONE Display
+*** DONE Ord
+*** DONE Hash
 *** DONE Testing
